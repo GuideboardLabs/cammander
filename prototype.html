@@ -1161,17 +1161,34 @@ input, textarea { font-family: inherit; }
   white-space: pre;
 }
 
-/* Syntax coloring — uses theme vars so both light+dark work */
-.kw  { color: var(--syn-keyword); }   /* keywords */
-.str { color: var(--syn-string); }    /* strings */
-.cm  { color: var(--syn-comment); }   /* comments */
-.fn  { color: var(--syn-func); }      /* function calls */
-.tp  { color: var(--syn-func); }      /* types */
-.num { color: var(--syn-number); }     /* numbers */
-.op  { color: var(--ink-muted); }      /* operators */
-.pn  { color: var(--ink-83); }         /* parentheses/brackets */
-.kw2 { color: #f59e0b; }              /* built-in constants */
-.dec { color: #10b981; }              /* decorators/attributes */
+/* ── Code areas: always dark, even in light mode ── */
+.code-area,
+.editor-textarea-wrap,
+.editor-highlight-backdrop {
+  background: #1a1a2e !important;
+  color: #e4e4ef !important;
+}
+.code-line:hover {
+  background: rgba(255,255,255,0.04) !important;
+}
+.line-num,
+.editor-highlight-backdrop .line-num {
+  color: #6b7294 !important;
+}
+/* Syntax colors — always dark-theme values */
+.kw  { color: #c4b5fd !important; }
+.str { color: #86efac !important; }
+.cm  { color: #6b7280 !important; }
+.fn  { color: #f9a8d4 !important; }
+.tp  { color: #f9a8d4 !important; }
+.num { color: #93c5fd !important; }
+.op  { color: #8b8ba7 !important; }
+.pn  { color: rgba(228,228,239,0.83) !important; }
+.kw2 { color: #f59e0b !important; }
+.dec { color: #10b981 !important; }
+.editor-textarea {
+  caret-color: #f97316 !important;
+}
 
 /* ── Terminal Panel ───────────────────────────────────── */
 .terminal-panel {
