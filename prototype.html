@@ -37,9 +37,9 @@
   /* Focus */
   --focus-shadow:    rgba(0,0,0,0.1) 0px 4px 12px;
   --ring-blue:       rgba(59,130,246,0.5);
-  /* Accent — subtle warm accent for active states */
-  --accent:          #3d3529;
-  --accent-light:    rgba(61,53,41,0.08);
+  /* Accent — teal */
+  --accent:          #0d9488;
+  --accent-light:    rgba(13,148,136,0.10);
   /* Theme toggle icon colors (light) */
   --theme-sun:       #f59e0b;
   --theme-moon:      var(--ink-muted);
@@ -90,9 +90,9 @@
   /* Focus */
   --focus-shadow:    rgba(0,0,0,0.4) 0px 4px 12px;
   --ring-blue:       rgba(96,165,250,0.5);
-  /* Accent — orange for dark theme (visible + warm) */
-  --accent:          #f97316;
-  --accent-light:    rgba(249,115,22,0.12);
+  /* Accent — teal */
+  --accent:          #14b8a6;
+  --accent-light:    rgba(20,184,166,0.12);
   /* Theme toggle icon colors (dark) */
   --theme-sun:       var(--ink-muted);
   --theme-moon:      #818cf8;
@@ -541,7 +541,7 @@ input, textarea { font-family: inherit; }
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--accent, #f97316);
+  color: var(--accent, #0d9488);
   background: transparent;
   border: none;
   border-radius: var(--radius-md);
@@ -1187,7 +1187,7 @@ input, textarea { font-family: inherit; }
 .kw2 { color: #f59e0b !important; }
 .dec { color: #10b981 !important; }
 .editor-textarea {
-  caret-color: #f97316 !important;
+  caret-color: #14b8a6 !important;
 }
 
 /* ── Terminal Panel ───────────────────────────────────── */
@@ -1987,7 +1987,7 @@ input, textarea { font-family: inherit; }
   transition: all 150ms var(--ease);
 }
 .settings-provider-tab--active {
-  background: var(--accent, #f97316);
+  background: var(--accent, #14b8a6);
   color: var(--bg);
   font-weight: 700;
   box-shadow: rgba(0,0,0,0.12) 0px 2px 4px;
@@ -3151,8 +3151,8 @@ function initTerminal() {
     theme: isDark ? {
       background: '#1a1a2e',
       foreground: '#e4e4ef',
-      cursor: '#f97316',
-      selectionBackground: 'rgba(249,115,22,0.25)',
+      cursor: '#14b8a6',
+      selectionBackground: 'rgba(20,184,166,0.25)',
       black: '#45475a',
       red: '#f38ba8',
       green: '#4ade80',
@@ -3172,8 +3172,8 @@ function initTerminal() {
     } : {
       background: '#1e1e2e',
       foreground: '#cdd6f4',
-      cursor: '#f5e0dc',
-      selectionBackground: 'rgba(203,166,247,0.3)',
+      cursor: '#0d9488',
+      selectionBackground: 'rgba(13,148,136,0.25)',
       black: '#45475a',
       red: '#f38ba8',
       green: '#a6e3a1',
