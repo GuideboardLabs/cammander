@@ -22,6 +22,7 @@ export function TerminalPanel({ onClose }: TerminalPanelProps) {
   const socketRef = useRef<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const [pid, setPid] = useState<number | null>(null);
+  const [reattached, setReattached] = useState(false);
 
   // Initialize terminal + socket
   useEffect(() => {
@@ -76,24 +77,33 @@ export function TerminalPanel({ onClose }: TerminalPanelProps) {
       transports: ['polling', 'websocket'],
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: Infinity,  // keep trying forever
+      reconnectionDelayMax: 10000,
     });
 
     socketRef.current = socket;
 
     socket.on('connect', () => {
       setConnected(true);
-      // Spawn PTY with workspace root as cwd
+      // Attach to persistent session (creates if doesn't exist)
       const cwd = state.root?.path || undefined;
-      socket.emit('terminal:create', {
+      socket.emit('terminal:attach', {
+        slot: 'default',
         cwd,
         cols: xterm.cols,
         rows: xterm.rows,
       });
     });
 
-    socket.on('terminal:ready', (data: { cwd: string; pid: number }) => {
+    socket.on('terminal:ready', (data: { cwd: string; pid: number; slot: string; reattached: boolean }) => {
       setPid(data.pid);
+      setReattached(data.reattached);
+      if (data.reattached) {
+        // Clear and show a brief reconnect notice
+        xterm.write('\x1b[90m[Reconnected to persistent terminal]\x1b[0m\r\n');
+        // Re-sync size
+        socket.emit('terminal:resize', { cols: xterm.cols, rows: xterm.rows });
+      }
     });
 
     socket.on('terminal:data', (data: string) => {
@@ -103,29 +113,36 @@ export function TerminalPanel({ onClose }: TerminalPanelProps) {
     socket.on('terminal:exit', (data: { exitCode: number }) => {
       xterm.write(`\r\n\x1b[90m[Process exited with code ${data.exitCode}]\x1b[0m\r\n`);
       setPid(null);
+      setReattached(false);
     });
 
     socket.on('disconnect', () => {
       setConnected(false);
-      setPid(null);
+      // Don't clear pid — the PTY is still alive server-side
+      xterm.write('\x1b[90m[Disconnected — terminal persists, reconnecting...]\x1b[0m\r\n');
     });
 
     // Terminal input → socket
     const inputDisposable = xterm.onData((data: string) => {
-      socket.emit('terminal:input', { data });
+      if (socket.connected) {
+        socket.emit('terminal:input', { data });
+      }
     });
 
     // Resize handling
     const resizeObserver = new ResizeObserver(() => {
       fitAddon.fit();
-      socket.emit('terminal:resize', { cols: xterm.cols, rows: xterm.rows });
+      if (socket.connected) {
+        socket.emit('terminal:resize', { cols: xterm.cols, rows: xterm.rows });
+      }
     });
     resizeObserver.observe(termRef.current);
 
     return () => {
       resizeObserver.disconnect();
       inputDisposable.dispose();
-      socket.emit('terminal:kill');
+      // Don't kill the PTY on unmount — just disconnect
+      // PTY persists server-side and can be reattached
       socket.disconnect();
       xterm.dispose();
       xtermRef.current = null;
@@ -154,8 +171,11 @@ export function TerminalPanel({ onClose }: TerminalPanelProps) {
     const xterm = xtermRef.current;
     if (!socket || !xterm) return;
     xterm.clear();
+    // Kill the persistent session and create a fresh one
+    socket.emit('terminal:kill', { slot: 'default' });
     const cwd = state.root?.path || undefined;
-    socket.emit('terminal:create', {
+    socket.emit('terminal:attach', {
+      slot: 'default',
       cwd,
       cols: xterm.cols,
       rows: xterm.rows,
@@ -170,7 +190,9 @@ export function TerminalPanel({ onClose }: TerminalPanelProps) {
           <span className="terminal-header-cwd">{state.root.name}</span>
         )}
         {pid !== null && (
-          <span className="terminal-header-badge">PID {pid}</span>
+          <span className="terminal-header-badge">
+            PID {pid}{reattached ? ' · reattached' : ''}
+          </span>
         )}
         <div className="terminal-header-status">
           <span className={`terminal-status-dot${connected ? ' terminal-status-dot--on' : ''}`} />

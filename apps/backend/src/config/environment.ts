@@ -10,7 +10,7 @@ export const environment = {
   SEARXNG_URL: process.env.SEARXNG_URL || 'http://localhost:8080',
   CLOAK_BROWSER_URL: process.env.CLOAK_BROWSER_URL || 'http://localhost:9222',
   SESSION_TTL_MS: parseInt(process.env.SESSION_TTL_MS || '86400000', 10),
-  WORKSPACE_ROOT: process.env.WORKSPACE_ROOT || '/home/sc/overcr-core/cammander',
+  WORKSPACE_ROOT: process.env.WORKSPACE_ROOT || '/home/sc/cammander',
 };
 
 export default registerAs('env', () => environment);
