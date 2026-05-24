@@ -1081,8 +1081,8 @@ input, textarea { font-family: inherit; }
   flex: 1;
   min-height: 0;
   overflow: auto;
-  background: #1e1e1e;
-  color: #d4d4d4;
+  background: var(--bg-elevated);
+  color: var(--ink);
   font-family: var(--mono);
   font-size: 13px;
   line-height: 1.6;
@@ -1105,7 +1105,7 @@ input, textarea { font-family: inherit; }
   width: 50px;
   text-align: right;
   padding-right: 16px;
-  color: #6a6a6a;
+  color: var(--ink-muted);
   user-select: none;
   flex-shrink: 0;
 }
@@ -1115,16 +1115,17 @@ input, textarea { font-family: inherit; }
   white-space: pre;
 }
 
-/* Syntax coloring */
-.kw { color: #569cd6; }
-.str { color: #ce9178; }
-.cm { color: #6a9955; }
-.fn { color: #dcdcaa; }
-.tp { color: #4ec9b0; }
-.num { color: #b5cea8; }
-.op { color: #d4d4d4; }
-.tag { color: #569cd6; }
-.attr { color: #9cdcfe; }
+/* Syntax coloring — uses theme vars so both light+dark work */
+.kw  { color: var(--syn-keyword); }   /* keywords */
+.str { color: var(--syn-string); }    /* strings */
+.cm  { color: var(--syn-comment); }   /* comments */
+.fn  { color: var(--syn-func); }      /* function calls */
+.tp  { color: var(--syn-func); }      /* types */
+.num { color: var(--syn-number); }     /* numbers */
+.op  { color: var(--ink-muted); }      /* operators */
+.pn  { color: var(--ink-83); }         /* parentheses/brackets */
+.kw2 { color: #f59e0b; }              /* built-in constants */
+.dec { color: #10b981; }              /* decorators/attributes */
 
 /* ── Terminal Panel ───────────────────────────────────── */
 .terminal-panel {
@@ -2747,12 +2748,13 @@ async function renderEditorView() {
       });
     }
   } else {
-    // Read-only mode with line numbers
+    // Read-only mode with line numbers + syntax highlighting
+    const lang = langFromPath(state.activeTab || 'txt');
     const lines = content.split('\n');
     let codeHtml = '<div class="code-area">';
     lines.forEach((line, i) => {
       const num = String(i + 1).padStart(4);
-      codeHtml += `<div class="code-line"><span class="line-num">${num}</span><span class="line-content">${escapeHtml(line)}</span></div>`;
+      codeHtml += `<div class="code-line"><span class="line-num">${num}</span><span class="line-content">${highlightCode(line, lang)}</span></div>`;
     });
     codeHtml += '</div>';
 
@@ -2761,12 +2763,250 @@ async function renderEditorView() {
   }
 }
 
-function escapeHtml(str) {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+// ── Syntax Highlighting ────────────────────────────────
+// Lightweight regex-based highlighter for the prototype.
+// Supports: JS/TS, Python, Rust, Go, Shell, YAML, TOML, CSV, Markdown, Dockerfile, SQL, JSON, HTML/CSS, .env
+
+const HIGHLIGHT_RULES = {
+  // Language IDs keyed by file extension
+  js: 'javascript', mjs: 'javascript', cjs: 'javascript', jsx: 'javascript',
+  ts: 'typescript', tsx: 'typescript',
+  py: 'python', pyw: 'python',
+  rs: 'rust',
+  go: 'go',
+  sh: 'shell', bash: 'shell', zsh: 'shell',
+  yaml: 'yaml', yml: 'yaml',
+  toml: 'toml',
+  csv: 'csv', tsv: 'csv',
+  md: 'markdown', markdown: 'markdown',
+  sql: 'sql',
+  json: 'json', jsonc: 'json',
+  html: 'html', htm: 'html', svg: 'html',
+  css: 'css', scss: 'scss',
+  dockerfile: 'dockerfile',
+  env: 'dotenv',
+  xml: 'xml',
+};
+
+function langFromPath(filePath) {
+  const name = filePath.split('/').pop() ?? '';
+  const lower = name.toLowerCase();
+  if (lower === 'dockerfile' || lower.startsWith('dockerfile.')) return 'dockerfile';
+  if (lower === 'makefile') return 'makefile';
+  if (lower === '.env' || lower.startsWith('.env.')) return 'dotenv';
+  if (lower === '.gitignore' || lower === '.dockerignore') return 'shell';
+  if (lower === 'cargo.toml' || lower === 'pyproject.toml') return 'toml';
+  if (lower === 'go.mod' || lower === 'go.sum') return 'go';
+  if (lower === 'package.json' || lower === 'tsconfig.json') return 'json';
+  if (lower === 'cargo.lock' || lower === 'package-lock.json') return 'json';
+  const ext = name.includes('.') ? name.split('.').pop() : '';
+  return HIGHLIGHT_RULES[ext] ?? ext;
+}
+
+// Token types and their CSS classes
+const TK = {
+  KW:  'kw',   // keywords
+  KW2: 'kw2',  // built-in constants (true, false, null, None)
+  STR: 'str',  // strings
+  NUM: 'num',  // numbers
+  CM:  'cm',   // comments
+  FN:  'fn',   // function calls
+  TP:  'tp',   // types/classes
+  DEC: 'dec',  // decorators/attributes
+  OP:  'op',   // operators
+  PN:  'pn',   // punctuation brackets
+};
+
+// Order matters — earlier rules take priority
+function buildRules(lang) {
+  const rules = [];
+
+  // ── Universal rules (all languages) ──
+  // Multi-line strings (triple quotes) — must come before single-line strings
+  if (lang === 'python' || lang === 'toml') {
+    rules.push([/"""[\s\S]*?"""/g, TK.STR], [/'''[\s\S]*?'''/g, TK.STR]);
+  }
+  if (lang === 'javascript' || lang === 'typescript') {
+    rules.push([/```[\s\S]*?```/g, TK.STR]); // template literal spans (approx)
+  }
+
+  // Comments
+  if (lang === 'python' || lang === 'toml' || lang === 'shell' || lang === 'dockerfile' || lang === 'yaml' || lang === 'dotenv') {
+    rules.push([/#.*$/gm, TK.CM]);
+  } else if (lang === 'rust') {
+    rules.push([/\/\/.*$/gm, TK.CM], [/\/\*[\s\S]*?\*\//g, TK.CM]);
+  } else if (lang === 'html' || lang === 'xml' || lang === 'svg') {
+    rules.push([/<!--[\s\S]*?-->/g, TK.CM]);
+  } else if (lang === 'css' || lang === 'scss') {
+    rules.push([/\/\*[\s\S]*?\*\//g, TK.CM]);
+  } else if (lang === 'sql') {
+    rules.push([/--.*$/gm, TK.CM], [/\/\*[\s\S]*?\*\//g, TK.CM]);
+  } else if (lang === 'csv' || lang === 'json' || lang === 'jsonc') {
+    // JSON/CSV — no line comments standard; jsonc uses //
+    if (lang === 'jsonc') rules.push([/\/\/.*$/gm, TK.CM]);
+  } else if (lang === 'markdown') {
+    // Markdown comments rare; just HTML-style
+    rules.push([/<!--[\s\S]*?-->/g, TK.CM]);
+  } else {
+    // JS/TS/go/tsx — // and /* */
+    rules.push([/\/\/.*$/gm, TK.CM], [/\/\*[\s\S]*?\*\//g, TK.CM]);
+  }
+
+  // Strings (single, double, backtick, f-strings)
+  if (lang === 'python') {
+    rules.push([/f"""[\s\S]*?"""/g, TK.STR], [/f'''[\s\S]*?'''/g, TK.STR]);
+    rules.push([/f"[^"\n]*"/g, TK.STR], [/f'[^'\n]*'/g, TK.STR]);
+  }
+  rules.push([/"(?:[^"\\]|\\.)*"/g, TK.STR]);  // double-quoted
+  rules.push([/'(?:[^'\\]|\\.)*'/g, TK.STR]);  // single-quoted
+  if (lang === 'javascript' || lang === 'typescript' || lang === 'go') {
+    rules.push([/`(?:[^`\\]|\\.)*`/g, TK.STR]);  // template literals / raw strings
+  }
+
+  // Numbers (hex, binary, floats)
+  if (lang === 'python') {
+    rules.push([/\b0x[0-9a-fA-F_]+n?\b/g, TK.NUM], [/\b0o[0-7_]+\b/g, TK.NUM], [/\b0b[01_]+\b/g, TK.NUM]);
+  }
+  rules.push([/\b0x[0-9a-fA-F]+n?\b/g, TK.NUM]);
+  rules.push([/\b\d+\.?\d*([eE][+-]?\d+)?n?\b/g, TK.NUM]);
+
+  // Language-specific keywords
+  const JS_KW = 'break|case|catch|class|const|continue|debugger|default|delete|do|else|export|extends|finally|for|from|function|if|import|in|instanceof|let|new|of|return|static|super|switch|this|throw|try|typeof|var|void|while|with|yield|async|await|enum|implements|interface|package|private|protected|public|abstract|as|declare|get|set|type|namespace|module|require|override|readonly|keyof|infer|asserts|is|unique|symbol';
+  const JS_CONST = 'true|false|null|undefined|NaN|Infinity|console|window|document|Math|JSON|Object|Array|String|Number|Boolean|Date|RegExp|Map|Set|Promise|Error|Symbol|BigInt|parseInt|parseFloat|isNaN|isFinite|encodeURI|decodeURI|encodeURIComponent|decodeURIComponent|alert|setTimeout|setInterval|clearTimeout|clearInterval|requestAnimationFrame|fetch|process|Buffer|module|exports|globalThis|self|Reflect|Proxy|WeakMap|WeakSet|ArrayBuffer|SharedArrayBuffer|DataView|Float32Array|Float64Array|Int8Array|Int16Array|Int32Array|Uint8Array|Uint16Array|Uint32Array|Uint8ClampedArray';
+
+  const PY_KW = 'False|None|True|and|as|assert|async|await|break|class|continue|def|del|elif|else|except|finally|for|from|global|if|import|in|is|lambda|nonlocal|not|or|pass|raise|return|try|while|with|yield';
+  const PY_BUILTIN = 'print|len|range|int|str|float|list|dict|tuple|set|bool|type|isinstance|hasattr|getattr|setattr|super|property|staticmethod|classmethod|enumerate|zip|map|filter|sorted|reversed|iter|next|open|input|abs|max|min|sum|any|all|round|hex|oct|bin|ord|chr|id|hash|repr|format|dir|vars|callable|eval|exec|compile|__import__|Exception|ValueError|TypeError|KeyError|IndexError|AttributeError|RuntimeError|StopIteration|NotImplementedError|IOError|OSError|ArithmeticError|LookupError';
+
+  const RS_KW = 'as|async|await|break|const|continue|crate|dyn|else|enum|extern|fn|for|if|impl|in|let|loop|match|mod|move|mut|pub|ref|return|self|Self|static|struct|super|trait|type|unsafe|use|where|while|yield';
+  const RS_CONST = 'true|false|Some|None|Ok|Err|Self|bool|char|f32|f64|i8|i16|i32|i64|i128|isize|str|u8|u16|u32|u64|u128|usize|String|Vec|Box|Rc|Arc|Option|Result|println|print|eprintln|eprint|panic|assert|assert_eq|assert_ne|todo|unimplemented|unreachable|dbg|vec|format';
+
+  const GO_KW = 'break|case|chan|const|continue|default|defer|else|fallthrough|for|func|go|goto|if|import|interface|map|package|range|return|select|struct|switch|type|var';
+  const GO_CONST = 'true|false|nil|iota| len|cap|append|copy|delete|make|new|close|panic|recover|print|println|complex|real|imag|error|string|int|int8|int16|int32|int64|uint|uint8|uint16|uint32|uint64|float32|float64|bool|byte|rune|any|comparable';
+
+  const SH_KW = 'if|then|else|elif|fi|for|while|until|do|done|case|esac|in|function|select|time|coproc|return|exit|break|continue|declare|export|local|readonly|typeset|unset|source|alias|bg|cd|echo|enable|eval|exec|exit|fg|hash|help|history|jobs|kill|let|logout|mapfile|popd|printf|pushd|pwd|read|readarray|shift|shopt|test|times|trap|type|ulimit|umask|unalias|wait';
+
+  const SQL_KW = 'SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|ALTER|DROP|INDEX|JOIN|LEFT|RIGHT|INNER|OUTER|ON|AND|OR|NOT|IN|BETWEEN|LIKE|IS|NULL|ORDER|BY|GROUP|HAVING|LIMIT|OFFSET|UNION|ALL|AS|DISTINCT|COUNT|SUM|AVG|MIN|MAX|EXISTS|CASE|WHEN|THEN|ELSE|END|BEGIN|COMMIT|ROLLBACK|GRANT|REVOKE|PRIMARY|KEY|FOREIGN|REFERENCES|CONSTRAINT|DEFAULT|CHECK|UNIQUE|AUTO_INCREMENT|VARCHAR|INTEGER|TEXT|BOOLEAN|FLOAT|DATE|TIMESTAMP|SERIAL|BIGSERIAL';
+
+  switch (lang) {
+    case 'javascript': case 'typescript':
+      rules.push([new RegExp(`\\b(${JS_KW})\\b`, 'g'), TK.KW]);
+      rules.push([new RegExp(`\\b(${JS_CONST})\\b`, 'g'), TK.KW2]);
+      rules.push([/\b[A-Z][a-zA-Z0-9]*\b/g, TK.TP]); // PascalCase = type
+      break;
+    case 'python':
+      rules.push([new RegExp(`\\b(${PY_KW})\\b`, 'g'), TK.KW]);
+      rules.push([new RegExp(`\\b(${PY_BUILTIN})\\b`, 'g'), TK.FN]);
+      rules.push([/@[\w.]+/g, TK.DEC]); // decorators
+      rules.push([/\bclass\s+([A-Z]\w*)/g, TK.TP]); // class definitions
+      rules.push([/\b[A-Z][a-zA-Z0-9_]*\b/g, TK.TP]); // PascalCase classes
+      break;
+    case 'rust':
+      rules.push([new RegExp(`\\b(${RS_KW})\\b`, 'g'), TK.KW]);
+      rules.push([new RegExp(`\\b(${RS_CONST})\\b`, 'g'), TK.KW2]);
+      rules.push([/\b[A-Z][a-zA-Z0-9]*\b/g, TK.TP]);
+      rules.push([/#\[(\w+)\]/g, TK.DEC]); // attributes
+      break;
+    case 'go':
+      rules.push([new RegExp(`\\b(${GO_KW})\\b`, 'g'), TK.KW]);
+      rules.push([new RegExp(`\\b(${GO_CONST})\\b`, 'g'), TK.KW2]);
+      rules.push([/\b[A-Z][a-zA-Z0-9]*\b/g, TK.TP]);
+      break;
+    case 'shell':
+      rules.push([new RegExp(`\\b(${SH_KW})\\b`, 'g'), TK.KW]);
+      rules.push([/\$\{[^}]+\}/g, TK.KW2]); // ${var}
+      rules.push([/\$[A-Za-z_]\w*/g, TK.KW2]); // $var
+      break;
+    case 'yaml': case 'toml':
+      rules.push([/^\s*[\w.-]+(?=\s*[:=])/gm, TK.FN]); // keys
+      rules.push([/\b(true|false|yes|no|on|off|null|True|False)\b/g, TK.KW2]);
+      break;
+    case 'sql':
+      rules.push([new RegExp(`\\b(${SQL_KW})\\b`, 'gi'), TK.KW]);
+      break;
+    case 'html': case 'svg': case 'xml':
+      rules.push([/<\/?[\w-]+/g, TK.KW]); // tags
+      rules.push([/\b[\w-]+(?==)/g, TK.KW2]); // attributes
+      break;
+    case 'css': case 'scss':
+      rules.push([/@[\w-]+/g, TK.DEC]); // @rules
+      rules.push([/#[\w-]+/g, TK.FN]); // #id selectors
+      rules.push([/^\s*[\w.-]+\s*:/gm, TK.KW]); // property: value
+      break;
+    case 'markdown':
+      rules.push([/^#{1,6}\s.+$/gm, TK.KW]); // headings
+      rules.push([/\*\*[^*]+\*\*/g, TK.KW2], [/__[^_]+__/g, TK.KW2]); // bold
+      rules.push([/\*[^*]+\*/g, TK.FN], [/_[^_]+_/g, TK.FN]); // italic
+      rules.push([/`[^`]+`/g, TK.STR]); // inline code
+      rules.push([/\[([^\]]+)\]\([^)]+\)/g, TK.FN]); // links
+      rules.push([/^>\s.+$/gm, TK.CM]); // blockquotes
+      rules.push([/^[-*+]\s/gm, TK.KW2], [/^\d+\.\s/gm, TK.KW2]); // lists
+      break;
+    case 'dockerfile':
+      rules.push([/^(FROM|RUN|CMD|LABEL|MAINTAINER|EXPOSE|ENV|ADD|COPY|ENTRYPOINT|VOLUME|USER|WORKDIR|ARG|ONBUILD|STOPSIGNAL|HEALTHCHECK|SHELL)\b/gim, TK.KW]);
+      rules.push([/\$\{[^}]+\}/g, TK.KW2], [/\$[A-Za-z_]\w*/g, TK.KW2]);
+      break;
+    case 'dotenv':
+      rules.push([/^\s*[A-Z_]\w*(?==)/gm, TK.FN]); // VAR=
+      break;
+    case 'csv':
+      // CSV highlighting is minimal — just highlight delimiters
+      rules.push([/,/g, TK.OP]);
+      break;
+  }
+
+  // Function calls (most languages): word followed by (
+  if (lang !== 'csv' && lang !== 'markdown' && lang !== 'yaml' && lang !== 'toml' && lang !== 'dockerfile' && lang !== 'dotenv') {
+    rules.push([/\b([a-z_]\w*)\s*(?=\()/g, TK.FN]);
+  }
+
+  // Punctuation brackets
+  rules.push([/[{}()\[\]]/g, TK.PN]);
+
+  return rules;
+}
+
+// Highlight a line of code — runs regex rules in priority order
+function highlightCode(text, lang) {
+  const rules = buildRules(lang);
+  if (!rules.length) return escapeHtml(text);
+
+  // Build a mask: for each char position, store {token, cls}
+  const chars = new Array(text.length);
+  for (let i = 0; i < chars.length; i++) chars[i] = null;
+
+  for (const [regex, cls] of rules) {
+    regex.lastIndex = 0;
+    let m;
+    while ((m = regex.exec(text)) !== null) {
+      const start = m.index;
+      const end = start + m[0].length;
+      // Only mark positions that aren't already claimed
+      let claimed = false;
+      for (let i = start; i < end; i++) { if (chars[i] !== null) { claimed = true; break; } }
+      if (!claimed) {
+        for (let i = start; i < end; i++) chars[i] = cls;
+        // Mark the group span
+      }
+    }
+  }
+
+  // Build output: escape HTML and wrap claimed spans with <span class="...">
+  let result = '';
+  let i = 0;
+  while (i < chars.length) {
+    if (chars[i] === null) {
+      // Plain text — escape and advance
+      result += escapeHtml(text[i]);
+      i++;
+    } else {
+      const cls = chars[i];
+      let j = i;
+      while (j < chars.length && chars[j] === cls) j++;
+      result += `<span class="${cls}">${escapeHtml(text.slice(i, j))}</span>`;
+      i = j;
+    }
+  }
+  return result;
 }
 
 // ── Terminal (real xterm.js + WebSocket) ────────────────
