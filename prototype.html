@@ -670,20 +670,66 @@ input, textarea { font-family: inherit; }
   margin-left: auto;
 }
 .edit-btn:hover { background: var(--ink-04); color: var(--ink); }
-.editor-textarea {
+.editor-textarea-wrap {
   flex: 1;
-  width: 100%;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-passive);
+}
+.editor-highlight-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
   padding: 12px 16px;
+  white-space: pre;
+  color: var(--ink);
+  pointer-events: none;
+  z-index: 1;
+  /* line numbers column reserved — matches read-only view width */
+}
+.editor-highlight-backdrop .code-line {
+  display: flex;
+  min-height: 21px;
+}
+.editor-highlight-backdrop .line-num {
+  display: inline-block;
+  width: 50px;
+  text-align: right;
+  padding-right: 16px;
+  color: var(--ink-muted);
+  user-select: none;
+  flex-shrink: 0;
+}
+.editor-highlight-backdrop .line-content {
+  flex: 1;
+  white-space: pre;
+}
+.editor-textarea {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 12px 16px 12px 66px;
   font-family: var(--mono);
   font-size: 13px;
   line-height: 1.6;
   border: none;
-  border-top: 1px solid var(--border-passive);
-  background: var(--bg-elevated);
-  color: var(--ink);
+  background: transparent;
+  color: transparent;
+  caret-color: var(--accent);
   resize: none;
   outline: none;
   tab-size: 2;
+  z-index: 2;
+  white-space: pre;
+  overflow: auto;
+  /* Match backdrop scrollbar area */
+  -webkit-text-fill-color: transparent;
 }
 .editor-toolbar {
   display: flex;
@@ -2701,11 +2747,23 @@ async function renderEditorView() {
   const content = fileData.content || '';
 
   if (state.editingFile) {
-    // Edit mode
+    // Edit mode — highlighted backdrop + transparent textarea overlay
+    const lang = langFromPath(state.activeTab || 'txt');
+    const lines = content.split('\n');
+    let backdropHtml = '<div class="editor-highlight-backdrop" id="editor-backdrop">';
+    lines.forEach((line, i) => {
+      const num = String(i + 1).padStart(4);
+      backdropHtml += `<div class="code-line"><span class="line-num">${num}</span><span class="line-content">${highlightCode(line, lang)}</span></div>`;
+    });
+    backdropHtml += '</div>';
+
     const contentArea = container.querySelector('.folder-loading');
     if (contentArea) {
       contentArea.outerHTML = `
-        <textarea class="editor-textarea" id="editor-textarea">${escapeHtml(content)}</textarea>
+        <div class="editor-textarea-wrap">
+          ${backdropHtml}
+          <textarea class="editor-textarea" id="editor-textarea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off">${escapeHtml(content)}</textarea>
+        </div>
         <div class="editor-toolbar">
           <button class="editor-toolbar-btn editor-toolbar-btn--save" id="editor-save">Save</button>
           <button class="editor-toolbar-btn" id="editor-cancel">Cancel</button>
@@ -2713,7 +2771,46 @@ async function renderEditorView() {
     }
 
     const textarea = container.querySelector('#editor-textarea');
-    if (textarea) textarea.focus();
+    const backdrop = container.querySelector('#editor-backdrop');
+
+    // Sync scroll between textarea and backdrop
+    if (textarea && backdrop) {
+      textarea.addEventListener('scroll', () => {
+        backdrop.scrollTop = textarea.scrollTop;
+        backdrop.scrollLeft = textarea.scrollLeft;
+      });
+    }
+
+    // Live syntax re-highlight on input
+    if (textarea && backdrop) {
+      textarea.addEventListener('input', () => {
+        const t = state.openTabs.find(t => t.path === state.activeTab);
+        if (t) t.modified = true;
+        // Re-render the backdrop
+        const newLines = textarea.value.split('\n');
+        let html = '';
+        newLines.forEach((line, i) => {
+          const num = String(i + 1).padStart(4);
+          html += `<div class="code-line"><span class="line-num">${num}</span><span class="line-content">${highlightCode(line, lang)}</span></div>`;
+        });
+        backdrop.innerHTML = html;
+      });
+    }
+
+    // Handle Tab key in textarea
+    if (textarea) {
+      textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end);
+          textarea.selectionStart = textarea.selectionEnd = start + 2;
+          textarea.dispatchEvent(new Event('input'));
+        }
+      });
+      textarea.focus();
+    }
 
     const saveBtn = container.querySelector('#editor-save');
     if (saveBtn) {
