@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useRef, useMemo } from 'react';
-import Editor, { type OnMount } from '@monaco-editor/react';
+import Editor, { type OnMount, loader } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import type { CursorPosition, ScrollPosition } from '@/types';
+import { getLanguageFromPath, registerCustomLanguages } from '@/languages';
 import './EditorPane.css';
+
+// Configure Monaco to use the locally installed package instead of CDN
+// This ensures syntax highlighting works offline (WSL/local dev)
+import * as monaco from 'monaco-editor';
+loader.config({ monaco });
 
 interface EditorPaneProps {
   value: string;
@@ -19,30 +25,8 @@ interface EditorPaneProps {
   savedScroll?: ScrollPosition;
 }
 
-function getLanguageFromPath(filePath: string): string {
-  const ext = filePath.includes('.') ? filePath.split('.').pop()! : '';
-  const map: Record<string, string> = {
-    ts: 'typescript',
-    tsx: 'typescript',
-    js: 'javascript',
-    jsx: 'javascript',
-    json: 'json',
-    css: 'css',
-    scss: 'scss',
-    html: 'html',
-    md: 'markdown',
-    py: 'python',
-    rs: 'rust',
-    go: 'go',
-    yaml: 'yaml',
-    yml: 'yaml',
-    xml: 'xml',
-    sh: 'shell',
-    bash: 'shell',
-    sql: 'sql',
-  };
-  return map[ext] ?? ext;
-}
+// Register custom languages once
+let languagesRegistered = false;
 
 export function EditorPane({
   value,
@@ -69,6 +53,12 @@ export function EditorPane({
   const handleEditorMount: OnMount = useCallback((editor, monaco) => {
     editorRef.current = editor;
 
+    // Register custom Monarch tokenizers on first mount
+    if (!languagesRegistered) {
+      registerCustomLanguages(monaco);
+      languagesRegistered = true;
+    }
+
     // Listen for cursor position changes
     editor.onDidChangeCursorPosition((e) => {
       if (skipCursorEventRef.current) {
@@ -85,9 +75,6 @@ export function EditorPane({
         scrollLeft: e.scrollLeft,
       });
     });
-
-    // Suppress unused variable warning
-    void monaco;
   }, [onCursorChange, onScrollChange]);
 
   // Restore saved cursor/scroll when switching to a file

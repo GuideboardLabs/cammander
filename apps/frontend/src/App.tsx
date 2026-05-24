@@ -6,32 +6,8 @@ import { ChatPanel } from '@/components/ChatPanel';
 import { TerminalPanel } from '@/components/TerminalPanel';
 import { SettingsModal } from '@/components/SettingsModal';
 import { WorkspacePicker } from '@/components/WorkspacePicker';
+import { getLanguageFromPath } from '@/languages';
 import type { FileNode, OpenTab, CursorPosition, ScrollPosition } from '@/types';
-
-function getLanguageFromPath(filePath: string): string {
-  const ext = filePath.includes('.') ? filePath.split('.').pop()! : '';
-  const map: Record<string, string> = {
-    ts: 'typescript',
-    tsx: 'typescript',
-    js: 'javascript',
-    jsx: 'javascript',
-    json: 'json',
-    css: 'css',
-    scss: 'scss',
-    html: 'html',
-    md: 'markdown',
-    py: 'python',
-    rs: 'rust',
-    go: 'go',
-    yaml: 'yaml',
-    yml: 'yaml',
-    xml: 'xml',
-    sh: 'shell',
-    bash: 'shell',
-    sql: 'sql',
-  };
-  return map[ext] ?? ext;
-}
 
 export default function App() {
   const { state, dispatch } = useWorkspace();
@@ -231,7 +207,7 @@ export default function App() {
             />
           ) : (
             <div className="welcome-screen">
-              <h2>Projramr</h2>
+              <h2>Cammander</h2>
               <p>Open a folder to start editing</p>
             </div>
           )}
