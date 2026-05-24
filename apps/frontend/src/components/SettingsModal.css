@@ -1,0 +1,149 @@
+/* ── Settings Modal ─── Catppuccin Mocha ── */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.settings-modal {
+  background: #1e1e2e;
+  border: 1px solid #313244;
+  border-radius: 12px;
+  width: 420px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.settings-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #313244;
+}
+
+.settings-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #cdd6f4;
+}
+
+.settings-close-btn {
+  background: none;
+  border: none;
+  color: #6c7086;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.settings-close-btn:hover {
+  color: #cdd6f4;
+  background: #313244;
+}
+
+.settings-modal-body {
+  padding: 20px;
+}
+
+.settings-section {
+  margin-bottom: 20px;
+}
+
+.settings-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a6adc8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.settings-provider-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.settings-provider-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #313244;
+  border-radius: 6px;
+  background: #181825;
+  color: #a6adc8;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.settings-provider-tab:hover {
+  background: #313244;
+  color: #cdd6f4;
+}
+.settings-provider-tab--active {
+  background: #313244;
+  color: #fab387;
+  border-color: #fab387;
+}
+
+.settings-field {
+  margin-bottom: 14px;
+}
+.settings-field label {
+  display: block;
+  font-size: 12px;
+  color: #a6adc8;
+  margin-bottom: 4px;
+}
+
+.settings-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: #11111b;
+  border: 1px solid #313244;
+  border-radius: 6px;
+  color: #cdd6f4;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.settings-input:focus {
+  border-color: #fab387;
+}
+.settings-input::placeholder {
+  color: #585b70;
+}
+
+.settings-save-btn {
+  width: 100%;
+  padding: 10px;
+  background: #fab387;
+  color: #11111b;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.settings-save-btn:hover {
+  background: #f9e2af;
+}
+
+.settings-status {
+  margin-top: 10px;
+  font-size: 12px;
+  text-align: center;
+}
+.settings-status--ok {
+  color: #a6e3a1;
+}
+.settings-status--err {
+  color: #f38ba8;
+}

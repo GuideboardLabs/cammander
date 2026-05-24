@@ -1,0 +1,80 @@
+.editor-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background-color: #181825;
+  border-bottom: 1px solid #313244;
+  min-height: 36px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-shrink: 0;
+}
+
+.editor-tabs--empty {
+  justify-content: center;
+}
+
+.editor-tabs-placeholder {
+  color: #585b70;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.editor-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  padding-right: 8px;
+  font-size: 13px;
+  color: #a6adc8;
+  background: transparent;
+  border: none;
+  border-right: 1px solid #313244;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s;
+  position: relative;
+}
+
+.editor-tab:hover {
+  background-color: #313244;
+  color: #cdd6f4;
+}
+
+.editor-tab--active {
+  background-color: #1e1e2e;
+  color: #cdd6f4;
+  border-bottom: 2px solid #cba6f7;
+}
+
+.editor-tab--active:hover {
+  background-color: #1e1e2e;
+}
+
+.editor-tab-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.editor-tab-modified {
+  color: #f9e2af;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.editor-tab-close {
+  margin-left: 2px;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 16px;
+  line-height: 1;
+  opacity: 0.5;
+  transition: opacity 0.15s, background-color 0.15s;
+}
+
+.editor-tab-close:hover {
+  opacity: 1;
+  background-color: #45475a;
+}

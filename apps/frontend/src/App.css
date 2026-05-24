@@ -1,0 +1,166 @@
+/* ── Global resets ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #1e1e2e;
+  color: #cdd6f4;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── App layout: CSS Grid ── */
+.app-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  grid-template-rows: 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* When chat panel is open, add a third column */
+.app-layout--chat {
+  grid-template-columns: 250px 1fr 340px;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  background-color: #181825;
+  border-right: 1px solid #313244;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid #313244;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sidebar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar-icon-btn {
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: none;
+  color: #585b70;
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.sidebar-icon-btn:hover {
+  background: #313244;
+  color: #cdd6f4;
+}
+
+.sidebar-icon-btn--active {
+  background: #313244;
+  color: #fab387;
+  border-color: #45475a;
+}
+
+.sidebar-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #a6adc8;
+  white-space: nowrap;
+}
+
+.open-folder-btn {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid #45475a;
+  background-color: #313244;
+  color: #cdd6f4;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s;
+}
+
+.open-folder-btn:hover:not(:disabled) {
+  background-color: #45475a;
+}
+
+.open-folder-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sidebar-error {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #f38ba8;
+  background-color: rgba(243, 139, 168, 0.1);
+  border-bottom: 1px solid rgba(243, 139, 168, 0.2);
+}
+
+.sidebar-tree {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* ── Main area ── */
+.main-area {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.editor-area {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+}
+
+/* ── Welcome screen ── */
+.welcome-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: #585b70;
+  text-align: center;
+  gap: 8px;
+}
+
+.welcome-screen h2 {
+  font-size: 28px;
+  font-weight: 300;
+  color: #a6adc8;
+  margin-bottom: 4px;
+}
+
+.welcome-screen p {
+  font-size: 14px;
+  color: #585b70;
+}

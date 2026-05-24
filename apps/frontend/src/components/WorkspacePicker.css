@@ -1,0 +1,200 @@
+/* ── Workspace Picker Modal ─── Catppuccin Mocha ── */
+.wpicker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.wpicker-modal {
+  background: #1e1e2e;
+  border: 1px solid #313244;
+  border-radius: 12px;
+  width: 500px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.wpicker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #313244;
+}
+
+.wpicker-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #cdd6f4;
+}
+
+.wpicker-close-btn {
+  background: none;
+  border: none;
+  color: #6c7086;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.wpicker-close-btn:hover {
+  color: #cdd6f4;
+  background: #313244;
+}
+
+.wpicker-body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.wpicker-path-bar {
+  display: flex;
+  gap: 8px;
+}
+
+.wpicker-path-input {
+  flex: 1;
+  padding: 8px 12px;
+  background: #11111b;
+  border: 1px solid #313244;
+  border-radius: 6px;
+  color: #cdd6f4;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  outline: none;
+}
+.wpicker-path-input:focus {
+  border-color: #fab387;
+}
+.wpicker-path-input::placeholder {
+  color: #585b70;
+}
+
+.wpicker-browse-btn,
+.wpicker-home-btn {
+  padding: 8px 14px;
+  background: #313244;
+  border: 1px solid #45475a;
+  border-radius: 6px;
+  color: #cdd6f4;
+  font-size: 13px;
+  cursor: pointer;
+}
+.wpicker-browse-btn:hover,
+.wpicker-home-btn:hover {
+  background: #45475a;
+}
+
+.wpicker-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #313244;
+  border-radius: 8px;
+  background: #181825;
+}
+
+.wpicker-empty {
+  padding: 24px;
+  text-align: center;
+  color: #6c7086;
+  font-size: 14px;
+}
+.wpicker-empty--err {
+  color: #f38ba8;
+}
+
+.wpicker-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #313244;
+  transition: background 0.1s;
+}
+.wpicker-item:last-child {
+  border-bottom: none;
+}
+.wpicker-item:hover {
+  background: #313244;
+}
+.wpicker-item--selected {
+  background: #313244;
+  border-left: 3px solid #fab387;
+}
+.wpicker-item--up {
+  color: #a6adc8;
+}
+
+.wpicker-item-icon {
+  font-size: 16px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.wpicker-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.wpicker-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #cdd6f4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wpicker-item-path {
+  font-size: 11px;
+  color: #6c7086;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wpicker-item-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+.wpicker-item-badge--git {
+  background: #313244;
+  color: #a6e3a1;
+}
+
+.wpicker-footer {
+  padding-top: 4px;
+}
+
+.wpicker-open-btn {
+  width: 100%;
+  padding: 10px;
+  background: #fab387;
+  color: #11111b;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.wpicker-open-btn:hover:not(:disabled) {
+  background: #f9e2af;
+}
+.wpicker-open-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

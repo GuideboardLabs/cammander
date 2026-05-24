@@ -1,0 +1,26 @@
+/* Additional global resets / base styles */
+:root {
+  color-scheme: dark;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #45475a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #585b70;
+}
+
+::selection {
+  background-color: rgba(203, 166, 247, 0.3);
+}

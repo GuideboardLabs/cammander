@@ -1,0 +1,14 @@
+.editor-pane {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6c7086;
+  font-size: 14px;
+}

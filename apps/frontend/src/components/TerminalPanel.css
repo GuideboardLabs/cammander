@@ -1,0 +1,97 @@
+/* ── Terminal Panel ── */
+.terminal-panel {
+  display: flex;
+  flex-direction: column;
+  background: #11111b;
+  border-top: 1px solid #313244;
+  min-height: 120px;
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: #181825;
+  border-bottom: 1px solid #313244;
+  gap: 8px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.terminal-header-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #a6adc8;
+}
+
+.terminal-header-cwd {
+  font-size: 10px;
+  color: #585b70;
+  background: #1e1e2e;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid #313244;
+}
+
+.terminal-header-badge {
+  font-size: 10px;
+  color: #6c7086;
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+}
+
+.terminal-header-status {
+  margin-left: auto;
+}
+
+.terminal-status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #585b70;
+}
+
+.terminal-status-dot--on {
+  background: #a6e3a1;
+  box-shadow: 0 0 4px rgba(166, 227, 161, 0.4);
+}
+
+.terminal-header-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.terminal-btn {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  background: none;
+  color: #585b70;
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.terminal-btn:hover {
+  background: #313244;
+  color: #cdd6f4;
+}
+
+/* ── Terminal body ── */
+.terminal-body {
+  flex: 1;
+  min-height: 120px;
+  padding: 4px 0;
+}
+
+.terminal-body .xterm {
+  height: 100%;
+  padding: 0 4px;
+}
+
+.terminal-body .xterm-viewport {
+  overflow-y: auto !important;
+}

@@ -1,0 +1,215 @@
+import { createContext, useContext, useReducer, type Dispatch, type ReactNode } from 'react';
+import type { WorkspaceState, WorkspaceAction, OpenTab, CursorPosition, ScrollPosition, AIContext } from '@/types';
+
+const DEFAULT_CURSOR: CursorPosition = { line: 1, column: 1 };
+const DEFAULT_SCROLL: ScrollPosition = { scrollTop: 0, scrollLeft: 0 };
+
+const DEFAULT_AI_CONTEXT: AIContext = {
+  updatedAt: new Date().toISOString(),
+};
+
+const initialState: WorkspaceState = {
+  root: null,
+  files: new Map(),
+  openTabs: [],
+  activeTab: '',
+  chatMessages: [],
+  aiContext: DEFAULT_AI_CONTEXT,
+};
+
+export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): WorkspaceState {
+  switch (action.type) {
+    case 'SET_ROOT':
+      return { ...state, root: action.root };
+
+    case 'SET_FILES':
+      return { ...state, files: action.files };
+
+    case 'OPEN_TAB': {
+      // Deduplicate — if tab already open, just activate it
+      const existing = state.openTabs.find((t) => t.filePath === action.tab.filePath);
+      if (existing) {
+        return { ...state, activeTab: action.tab.filePath };
+      }
+      // Ensure tab has cursor/scroll defaults
+      const tab: OpenTab = {
+        ...action.tab,
+        cursor: action.tab.cursor ?? DEFAULT_CURSOR,
+        scroll: action.tab.scroll ?? DEFAULT_SCROLL,
+      };
+      return {
+        ...state,
+        openTabs: [...state.openTabs, tab],
+        activeTab: tab.filePath,
+      };
+    }
+
+    case 'CLOSE_TAB': {
+      const idx = state.openTabs.findIndex((t) => t.filePath === action.filePath);
+      if (idx === -1) return state;
+
+      const newTabs = state.openTabs.filter((t) => t.filePath !== action.filePath);
+      let nextActive = state.activeTab;
+
+      if (state.activeTab === action.filePath) {
+        // Nearest-neighbor: prefer left, then right, then none
+        if (newTabs.length === 0) {
+          nextActive = '';
+        } else if (idx > 0) {
+          nextActive = newTabs[idx - 1]!.filePath;
+        } else {
+          nextActive = newTabs[0]!.filePath;
+        }
+      }
+
+      return { ...state, openTabs: newTabs, activeTab: nextActive };
+    }
+
+    case 'SET_ACTIVE_TAB':
+      return { ...state, activeTab: action.filePath };
+
+    case 'UPDATE_FILE_CONTENT': {
+      const newFiles = new Map(state.files);
+      newFiles.set(action.filePath, action.content);
+      return { ...state, files: newFiles };
+    }
+
+    case 'MARK_MODIFIED': {
+      const newTabs = state.openTabs.map((t) =>
+        t.filePath === action.filePath ? { ...t, modified: action.modified } : t,
+      );
+      return { ...state, openTabs: newTabs };
+    }
+
+    case 'SET_CURSOR': {
+      const newTabs = state.openTabs.map((t) =>
+        t.filePath === action.filePath ? { ...t, cursor: action.cursor } : t,
+      );
+      return { ...state, openTabs: newTabs };
+    }
+
+    case 'SET_SCROLL': {
+      const newTabs = state.openTabs.map((t) =>
+        t.filePath === action.filePath ? { ...t, scroll: action.scroll } : t,
+      );
+      return { ...state, openTabs: newTabs };
+    }
+
+    // ── Chat actions ──
+
+    case 'ADD_CHAT_MESSAGE': {
+      // Deduplicate by ID
+      if (state.chatMessages.some((m) => m.id === action.message.id)) {
+        return state;
+      }
+      return {
+        ...state,
+        chatMessages: [...state.chatMessages, action.message],
+      };
+    }
+
+    case 'ADD_CHAT_MESSAGES': {
+      // Deduplicate by ID
+      const existingIds = new Set(state.chatMessages.map((m) => m.id));
+      const newMessages = action.messages.filter((m) => !existingIds.has(m.id));
+      return {
+        ...state,
+        chatMessages: [...state.chatMessages, ...newMessages],
+      };
+    }
+
+    case 'CLEAR_CHAT_HISTORY':
+      return { ...state, chatMessages: [] };
+
+    case 'SET_CHAT_MESSAGES':
+      return { ...state, chatMessages: action.messages };
+
+    // ── AI context actions ──
+
+    case 'SET_AI_CONTEXT':
+      return { ...state, aiContext: action.context };
+
+    case 'UPDATE_FILE_TREE_SUMMARY':
+      return {
+        ...state,
+        aiContext: {
+          ...state.aiContext,
+          fileTreeSummary: action.summary,
+          updatedAt: new Date().toISOString(),
+        },
+      };
+
+    case 'UPDATE_INDEXED_SYMBOLS':
+      return {
+        ...state,
+        aiContext: {
+          ...state.aiContext,
+          indexedSymbols: action.symbols,
+          updatedAt: new Date().toISOString(),
+        },
+      };
+
+    case 'UPDATE_RELEVANT_PATHS':
+      return {
+        ...state,
+        aiContext: {
+          ...state.aiContext,
+          relevantFilePaths: action.paths,
+          updatedAt: new Date().toISOString(),
+        },
+      };
+
+    case 'UPDATE_BRANCH':
+      return {
+        ...state,
+        aiContext: {
+          ...state.aiContext,
+          branch: action.branch,
+          updatedAt: new Date().toISOString(),
+        },
+      };
+
+    case 'UPDATE_CONTEXT_WINDOW':
+      return {
+        ...state,
+        aiContext: {
+          ...state.aiContext,
+          contextWindow: action.window,
+          updatedAt: new Date().toISOString(),
+        },
+      };
+
+    case 'CLEAR_AI_CONTEXT':
+      return { ...state, aiContext: { updatedAt: new Date().toISOString() } };
+
+    case 'RESTORE_STATE':
+      return { ...action.state };
+
+    default:
+      return state;
+  }
+}
+
+interface WorkspaceContextValue {
+  state: WorkspaceState;
+  dispatch: Dispatch<WorkspaceAction>;
+}
+
+const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
+
+export function WorkspaceProvider({ children }: { children: ReactNode }) {
+  const [state, dispatch] = useReducer(workspaceReducer, initialState);
+  return (
+    <WorkspaceContext.Provider value={{ state, dispatch }}>
+      {children}
+    </WorkspaceContext.Provider>
+  );
+}
+
+export function useWorkspace(): WorkspaceContextValue {
+  const ctx = useContext(WorkspaceContext);
+  if (!ctx) throw new Error('useWorkspace must be used within a WorkspaceProvider');
+  return ctx;
+}
+
+export { DEFAULT_CURSOR, DEFAULT_SCROLL, DEFAULT_AI_CONTEXT };
