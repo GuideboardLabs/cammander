@@ -24,6 +24,7 @@ const REAPER_INTERVAL_MS = 5 * 60 * 1000;   // 5 min
 @WebSocketGateway({
   cors: { origin: '*', credentials: true },
   namespace: '/terminal',
+  path: '/terminal',
   transports: ['polling', 'websocket'],
 })
 export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect {

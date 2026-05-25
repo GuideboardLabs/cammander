@@ -1293,6 +1293,7 @@ input, textarea { font-family: inherit; }
   flex-direction: column;
   transition: width 220ms var(--ease), opacity 180ms var(--ease);
   min-width: 0;
+  overflow: hidden;
 }
 
 .chat-panel--expanded {
@@ -2101,6 +2102,785 @@ input, textarea { font-family: inherit; }
 .animate-in {
   animation: fadeIn 200ms var(--ease) forwards;
 }
+
+/* ── Typing indicator (streaming) ───────────────────── */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+}
+.typing-indicator span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-muted);
+  animation: typingBounce 1.2s ease-in-out infinite;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+.chat-panel { position: relative; }
+
+/* ── Keyboard Shortcuts Help ────────────────────────── */
+/* Tree view — node classes used by renderFileTree() */
+.tree-node {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  color: var(--ink-82);
+  white-space: nowrap;
+  transition: background var(--dur) var(--ease);
+  font-size: 13px;
+  user-select: none;
+}
+.tree-node:hover { background: var(--ink-04); }
+.tree-node--dir .tree-node-name { font-weight: 500; }
+.tree-node-arrow {
+  width: 16px; height: 16px; font-size: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--ink-muted); flex-shrink: 0;
+  transition: transform var(--dur) var(--ease);
+}
+.tree-node-arrow--expanded { transform: rotate(90deg); }
+.tree-node-arrow--empty { visibility: hidden; }
+.tree-node-icon { flex-shrink: 0; font-size: 14px; }
+.tree-node-name { overflow: hidden; text-overflow: ellipsis; }
+.tree-children {
+  padding-left: 20px;
+  border-left: 1px solid var(--border-passive);
+  margin-left: 7px;
+}
+.kb-help-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms var(--ease);
+}
+.kb-help-overlay--open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.kb-help-modal {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-passive);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  max-width: 380px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+.kb-help-modal h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.kb-help-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-passive);
+}
+.kb-help-row:last-child { border-bottom: none; }
+.kb-help-key {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--ink-03);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-passive);
+  color: var(--ink-82);
+}
+
+/* ── Quick Open Modal ───────────────────────────────── */
+.quick-open-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 250;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms var(--ease);
+}
+.quick-open-overlay--open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.quick-open-modal {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-passive);
+  border-radius: var(--radius-lg);
+  width: 500px;
+  max-width: 90vw;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.18);
+  overflow: hidden;
+}
+.quick-open-input {
+  width: 100%;
+  padding: 14px 18px;
+  font-size: 16px;
+  border: none;
+  border-bottom: 1px solid var(--border-passive);
+  background: transparent;
+  color: var(--ink);
+  outline: none;
+  font-family: var(--sans);
+}
+.quick-open-list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.quick-open-item {
+  padding: 8px 18px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--ink-82);
+  transition: background var(--dur) var(--ease);
+}
+.quick-open-item:hover,
+.quick-open-item--active {
+  background: var(--accent-light);
+  color: var(--ink);
+}
+
+/* ── Diff toggle in editor toolbar ─────────────────── */
+.diff-toggle-btn {
+  font-size: 11px;
+  padding: 4px 10px;
+  border: 1px solid var(--border-passive);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+}
+.diff-toggle-btn:hover {
+  background: var(--ink-04);
+  color: var(--ink);
+}
+.diff-toggle-btn--active {
+  background: var(--accent-light);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+/* ═══════════════════════════════════════════════════════════════
+   new-features.css — CSS patch for cammander prototype
+   Uses existing design tokens (--bg, --ink, --accent, etc.)
+   BEM-ish naming matching existing patterns.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 1. Copy button on code blocks ───────────────────── */
+.chat-msg--assistant .chat-msg-bubble pre {
+  position: relative;
+}
+.code-copy-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-passive);
+  background: var(--bg-elevated);
+  color: var(--ink-muted);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease), background var(--dur) var(--ease);
+  z-index: 5;
+  line-height: 1;
+}
+.chat-msg--assistant .chat-msg-bubble pre:hover .code-copy-btn,
+.code-copy-btn--visible {
+  opacity: 1;
+}
+.code-copy-btn:hover {
+  background: var(--ink-04);
+  color: var(--ink);
+}
+.code-copy-btn--copied {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  opacity: 1;
+}
+.code-copy-btn--copied::after {
+  content: 'Copied!';
+  position: absolute;
+  top: -28px;
+  right: 0;
+  background: var(--ink);
+  color: var(--bg-elevated);
+  font-size: 10px;
+  font-family: var(--sans);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ── 2. Scroll-to-bottom FAB ─────────────────────────── */
+.chat-scroll-fab {
+  position: sticky;
+  bottom: 0;
+  align-self: flex-end;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-passive);
+  color: var(--ink-muted);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  z-index: 10;
+  margin: -44px 4px 8px 0;
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  flex-shrink: 0;
+}
+.chat-scroll-fab--visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+.chat-scroll-fab:hover {
+  background: var(--ink-04);
+  color: var(--ink);
+}
+.chat-scroll-fab:active {
+  transform: scale(0.92);
+}
+
+/* ── 3. File tree (tree lines, nesting, arrows, rows) ── */
+.file-tree {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+  font-size: 12px;
+  font-family: var(--sans);
+  overflow-y: auto;
+  user-select: none;
+}
+.file-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  padding-left: calc(8px + var(--ft-depth, 0) * 16px);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  color: var(--ink-82);
+  white-space: nowrap;
+  transition: background var(--dur) var(--ease);
+  position: relative;
+  min-height: 26px;
+}
+.file-tree-row:hover {
+  background: var(--ink-04);
+}
+.file-tree-row--active {
+  background: var(--accent-light);
+  color: var(--ink);
+  font-weight: 500;
+}
+/* Tree lines (drawn via pseudo-elements on nested rows) */
+.file-tree-row--has-depth::before {
+  content: '';
+  position: absolute;
+  left: calc(8px + (var(--ft-depth, 0) - 1) * 16px + 5px);
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  border-left: 1px solid var(--border-passive);
+  pointer-events: none;
+}
+.file-tree-row--last-child::before {
+  height: 50%;
+}
+.file-tree-row--has-depth::after {
+  content: '';
+  position: absolute;
+  left: calc(8px + (var(--ft-depth, 0) - 1) * 16px + 5px);
+  top: 50%;
+  width: 10px;
+  height: 1px;
+  border-top: 1px solid var(--border-passive);
+  pointer-events: none;
+}
+/* Expand/collapse arrow */
+.file-tree-arrow {
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-muted);
+  flex-shrink: 0;
+  transition: transform var(--dur) var(--ease);
+  cursor: pointer;
+  line-height: 1;
+}
+.file-tree-arrow--expanded {
+  transform: rotate(90deg);
+}
+.file-tree-arrow--empty {
+  visibility: hidden;
+  pointer-events: none;
+}
+/* Folder / file icons */
+.file-tree-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.file-tree-icon--folder {
+  color: var(--accent);
+}
+.file-tree-icon--folder-open {
+  color: var(--accent);
+}
+.file-tree-icon--file {
+  color: var(--ink-muted);
+}
+.file-tree-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Git status dots in file tree */
+.file-tree-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.file-tree-dot--modified { background: var(--dot-warn); }
+.file-tree-dot--added    { background: var(--dot-ok); }
+.file-tree-dot--deleted  { background: var(--dot-err); }
+
+/* ── 4. Context attachment pills/badges ──────────────── */
+.chat-context-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 12px 0 12px;
+  min-height: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 200ms var(--ease), padding 200ms var(--ease);
+}
+.chat-context-pills--has-items {
+  max-height: 60px;
+  padding: 6px 12px;
+}
+.chat-context-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-passive);
+  background: var(--ink-04);
+  color: var(--ink-82);
+  font-size: 11px;
+  font-family: var(--sans);
+  white-space: nowrap;
+  transition: background var(--dur) var(--ease);
+  max-width: 180px;
+}
+.chat-context-pill:hover {
+  background: var(--ink-12);
+}
+.chat-context-pill-remove {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 1;
+}
+.chat-context-pill-remove:hover {
+  background: var(--ink-12);
+  color: var(--ink);
+}
+.chat-context-pill-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Attachment dropdown menu */
+.chat-attach-dropdown {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-passive);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  min-width: 180px;
+  padding: 4px;
+  z-index: 50;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.chat-attach-dropdown--open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.chat-attach-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--ink-82);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--sans);
+}
+.chat-attach-dropdown-item:hover {
+  background: var(--ink-04);
+  color: var(--ink);
+}
+.chat-attach-dropdown-icon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+/* Attachment trigger button (paperclip icon in composer) */
+.chat-attach-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-passive);
+  background: var(--bg);
+  color: var(--ink-muted);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  flex-shrink: 0;
+  position: relative;
+}
+.chat-attach-btn:hover {
+  background: var(--ink-04);
+  color: var(--ink);
+}
+
+/* ── 5. Syntax highlights in chat ────────────────────── */
+/* Extended set matching --syn-* and additional token types */
+.syn-keyword    { color: var(--syn-keyword); font-weight: 600; }
+.syn-string     { color: var(--syn-string); }
+.syn-number     { color: var(--syn-number); }
+.syn-comment    { color: var(--syn-comment); font-style: italic; }
+.syn-func       { color: var(--syn-func); }
+.syn-type       { color: var(--syn-func); }
+.syn-operator   { color: var(--ink-muted); }
+.syn-punctuation { color: var(--ink-82); }
+.syn-decorator  { color: var(--accent); }
+.syn-constant   { color: var(--accent); }
+.syn-builtin    { color: var(--syn-keyword); }
+.syn-variable   { color: var(--ink); }
+.syn-regex      { color: #e8a060; }
+.syn-boolean    { color: var(--syn-keyword); font-weight: 600; }
+.syn-namespace  { color: var(--accent); }
+.syn-tag        { color: var(--syn-keyword); }
+.syn-attr       { color: var(--syn-func); }
+.syn-property   { color: var(--ink-82); }
+.syn-heading    { font-weight: 700; color: var(--ink); }
+.syn-bold       { font-weight: 700; }
+.syn-italic     { font-style: italic; }
+.syn-link       { color: #e8a060; text-decoration: underline; }
+.syn-code       { font-family: var(--mono); font-size: 0.9em; }
+
+/* ── 6. Stop button (red, during streaming) ──────────── */
+.chat-stop-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(239,68,68,0.3);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+  position: relative;
+}
+.chat-stop-btn--visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+.chat-stop-btn:hover {
+  opacity: 0.85;
+  transform: scale(0.95);
+}
+.chat-stop-btn:active {
+  transform: scale(0.9);
+  opacity: 0.75;
+}
+/* Square inner icon for stop */
+.chat-stop-btn-icon {
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 2px;
+}
+
+/* ── 7. Typing indicator (bouncing dots) ─────────────── */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  min-height: 38px;
+}
+.typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-muted);
+  animation: typing-bounce 1.4s ease-in-out infinite both;
+}
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0.32s; }
+@keyframes typing-bounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+/* Typing indicator inside assistant bubble */
+.chat-msg--assistant .chat-msg-bubble .typing-indicator {
+  padding: 0;
+  min-height: 20px;
+}
+
+/* ── 8. Keyboard shortcuts tooltip (small overlay) ───── */
+.kb-shortcuts-tooltip {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-passive);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  padding: 8px 14px;
+  font-size: 11px;
+  font-family: var(--sans);
+  color: var(--ink-muted);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur) var(--ease);
+}
+.kb-shortcuts-tooltip--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.kb-shortcuts-tooltip kbd {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 1px 5px;
+  background: var(--ink-04);
+  border: 1px solid var(--border-passive);
+  border-radius: 3px;
+  color: var(--ink-82);
+}
+
+/* ── 9. Regenerate / Edit buttons (hover-reveal) ─────── */
+/* Enhanced version: positioned adjacent to chat bubbles, icons */
+.chat-msg {
+  position: relative;
+}
+.chat-msg-actions {
+  position: absolute;
+  top: 4px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+  z-index: 5;
+}
+.chat-msg:hover .chat-msg-actions,
+.chat-msg-actions--pinned {
+  opacity: 1;
+}
+.chat-msg--user .chat-msg-actions {
+  right: calc(100% + 4px);
+}
+.chat-msg--assistant .chat-msg-actions {
+  left: calc(100% + 4px);
+}
+.chat-msg-action-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-passive);
+  background: var(--bg-elevated);
+  color: var(--ink-muted);
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.chat-msg-action-btn:hover {
+  background: var(--ink-04);
+  color: var(--ink);
+}
+/* Tooltip labels on hover */
+.chat-msg-action-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--bg-elevated);
+  font-size: 10px;
+  font-family: var(--sans);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+.chat-msg-action-btn:hover::after {
+  opacity: 1;
+}
+
+/* ── 10. Git diff gutter (line indicators) ───────────── */
+.line-num--added {
+  background: rgba(34, 197, 94, 0.15);
+  position: relative;
+}
+.line-num--added::after {
+  content: '+';
+  font-size: 11px;
+  font-weight: 700;
+  color: #22c55e;
+  margin-left: 4px;
+}
+.line-num--removed {
+  background: rgba(239, 68, 68, 0.15);
+  position: relative;
+}
+.line-num--removed::after {
+  content: '-';
+  font-size: 11px;
+  font-weight: 700;
+  color: #ef4444;
+  margin-left: 4px;
+}
+.line-num--added::after,
+.line-num--removed::after {
+  float: right;
+  padding-right: 4px;
+}
+/* Whole-line background tint for diff lines */
+.code-line--added {
+  background: rgba(34, 197, 94, 0.08);
+}
+.code-line--removed {
+  background: rgba(239, 68, 68, 0.08);
+}
+/* Gutter indicator blocks (small colored bars in the gutter) */
+.line-num--modified {
+  position: relative;
+}
+.line-num--modified::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--dot-warn);
+  border-radius: 0 2px 2px 0;
+}
+/* Hunk header (shows @@ ... @@ in diff) */
+.diff-hunk-header {
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-family: var(--sans);
+  padding: 2px 8px 2px 58px;
+  opacity: 0.7;
+}
 </style>
 <!-- xterm.js for real terminal -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css">
@@ -2117,6 +2897,7 @@ input, textarea { font-family: inherit; }
     <div class="topbar-actions">
       <button class="topbar-btn" id="btn-toggle-grid" title="Grid view">⊞</button>
       <button class="topbar-btn topbar-btn--active" id="btn-toggle-list" title="List view">☰</button>
+      <button class="topbar-btn" id="btn-toggle-tree" title="Tree view">🌳</button>
       <button class="topbar-btn" id="btn-terminal" title="Toggle terminal"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></button>
       <button class="topbar-btn" id="btn-chat" title="Toggle AI chat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
       <button class="topbar-btn topbar-btn--primary" id="btn-open">Open Folder</button>
@@ -2247,12 +3028,20 @@ input, textarea { font-family: inherit; }
         <div class="chat-session-list" id="chat-session-list"></div>
       </div>
       <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-context-pills" id="chat-context-pills"></div>
       <div class="chat-composer">
+        <button class="chat-attach-btn" id="chat-attach-btn" title="Attach context">📎</button>
+        <div class="chat-attach-dropdown" id="chat-attach-dropdown">
+          <div class="chat-attach-dropdown-item" data-attach="current-file">Attach Current File</div>
+          <div class="chat-attach-dropdown-item" data-attach="folder-contents">Attach Folder Contents</div>
+        </div>
         <div class="chat-input-wrapper">
           <textarea class="chat-textarea" id="chat-input" rows="1" placeholder="Ask about your codebase…"></textarea>
         </div>
         <button class="chat-send-btn" id="chat-send" title="Send">↑</button>
+        <button class="chat-stop-btn" id="chat-stop" title="Stop">■</button>
       </div>
+      <div class="chat-scroll-fab" id="chat-scroll-fab" title="Scroll to bottom">↓</div>
     </div>
   </div>
 
@@ -2265,6 +3054,26 @@ input, textarea { font-family: inherit; }
       <div class="statusbar-item" id="status-lang">TypeScript</div>
       <div class="statusbar-item">UTF-8</div>
     </div>
+  </div>
+</div>
+
+<!-- Quick Open -->
+<div class="quick-open-overlay" id="quick-open-overlay">
+  <div class="quick-open-modal">
+    <input class="quick-open-input" id="quick-open-input" type="text" placeholder="Search open files…" spellcheck="false">
+    <div class="quick-open-list" id="quick-open-list"></div>
+  </div>
+</div>
+
+<!-- Keyboard Shortcuts Help -->
+<div class="kb-help-overlay" id="kb-help-overlay">
+  <div class="kb-help-modal">
+    <h3>Keyboard Shortcuts</h3>
+    <div class="kb-help-row"><span>Send chat message</span><span class="kb-help-key">Ctrl+Enter</span></div>
+    <div class="kb-help-row"><span>Toggle chat panel</span><span class="kb-help-key">Ctrl+K</span></div>
+    <div class="kb-help-row"><span>Quick open file</span><span class="kb-help-key">Ctrl+P</span></div>
+    <div class="kb-help-row"><span>Close / go back</span><span class="kb-help-key">Esc</span></div>
+    <div class="kb-help-row"><span>Show shortcuts</span><span class="kb-help-key">?</span></div>
   </div>
 </div>
 
@@ -2340,13 +3149,15 @@ const state = {
   terminalExpanded: false,
   terminalMaximized: false,
   chatExpanded: false,
-  viewMode: 'list', // 'list' | 'grid'
-  files: {},        // path -> { content, type, name, ext } cached file data
+  viewMode: 'list', // 'list' | 'grid' | 'tree'
+  files: {},        // path -> { content, type, name, extent } cached file data
   directoryCache: {}, // path -> entries[] cached directory listings
   editingFile: false,
   editContent: '',
   workspaceRoot: localStorage.getItem('cammander-workspace') || '',
   loading: false,
+  diffLines: null,  // { added: Set<number>, removed: Set<number> } for git diff gutter
+  diffVisible: false,
 };
 
 // ── File API helpers ───────────────────────────────────
@@ -2559,7 +3370,9 @@ async function renderFolderView() {
   const dirName = state.currentPath ? state.currentPath.split('/').pop() : (state.workspaceRoot ? state.workspaceRoot.split('/').pop() : 'cammander');
 
   let itemsHtml = '';
-  if (state.viewMode === 'grid') {
+  if (state.viewMode === 'tree') {
+    itemsHtml = `<div class="file-tree" id="file-tree"></div>`;
+  } else if (state.viewMode === 'grid') {
     itemsHtml = `<div class="folder-grid">`;
     for (const item of sorted) {
       const isDir = item.type === 'directory';
@@ -2644,6 +3457,114 @@ async function renderFolderView() {
   });
 
   wireNewFileButton(container);
+
+  // Render tree view if active
+  if (state.viewMode === 'tree' && sorted && sorted.length > 0) {
+    renderFileTree(sorted);
+  }
+}
+
+// ── File Tree View ────────────────────────────────────
+async function renderFileTree(entries) {
+  const treeEl = document.getElementById('file-tree');
+  if (!treeEl) return;
+
+  // Sort: dirs first
+  const sorted = [...entries].sort((a, b) => {
+    if (a.type !== b.type) return a.type === 'directory' ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  treeEl.innerHTML = '';
+  for (const item of sorted) {
+    const node = await createTreeNode(item, state.currentPath);
+    treeEl.appendChild(node);
+  }
+}
+
+async function createTreeNode(item, parentPath) {
+  const isDir = item.type === 'directory';
+  const node = document.createElement('div');
+  node.className = 'tree-node' + (isDir ? ' tree-node--dir' : '');
+
+  // Arrow
+  const arrow = document.createElement('span');
+  arrow.className = 'tree-node-arrow';
+  if (isDir) {
+    arrow.textContent = '▶';
+  } else {
+    arrow.classList.add('tree-node-arrow--empty');
+  }
+  node.appendChild(arrow);
+
+  // Icon
+  const icon = document.createElement('span');
+  icon.className = 'tree-node-icon';
+  icon.textContent = fileIcon(item.name, isDir);
+  node.appendChild(icon);
+
+  // Name
+  const name = document.createElement('span');
+  name.className = 'tree-node-name';
+  name.textContent = item.name;
+  node.appendChild(name);
+
+  // Children container
+  let childrenContainer = null;
+
+  if (isDir) {
+    node.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const childPath = fullPath(parentPath, item.name);
+
+      // Toggle expand/collapse
+      if (childrenContainer && childrenContainer.style.display !== 'none') {
+        childrenContainer.style.display = 'none';
+        arrow.classList.remove('tree-node-arrow--expanded');
+        return;
+      }
+
+      // Show / lazy load
+      if (!childrenContainer) {
+        childrenContainer = document.createElement('div');
+        childrenContainer.className = 'tree-children';
+        node.appendChild(childrenContainer);
+
+        // Show loading
+        childrenContainer.innerHTML = '<div class="tree-node"><span class="tree-node-name" style="color:var(--ink-muted);font-size:11px;">Loading...</span></div>';
+
+        try {
+          let childEntries = state.directoryCache[childPath];
+          if (!childEntries) {
+            childEntries = await fetchDirectory(childPath);
+          }
+          childrenContainer.innerHTML = '';
+          const childSorted = [...childEntries].sort((a, b) => {
+            if (a.type !== b.type) return a.type === 'directory' ? -1 : 1;
+            return a.name.localeCompare(b.name);
+          });
+          for (const child of childSorted) {
+            const childNode = await createTreeNode(child, childPath);
+            childrenContainer.appendChild(childNode);
+          }
+        } catch (e) {
+          childrenContainer.innerHTML = `<div class="tree-node"><span class="tree-node-name" style="color:#dc2626;font-size:11px;">Error: ${escapeHtml(e.message)}</span></div>`;
+        }
+      } else {
+        childrenContainer.style.display = '';
+      }
+
+      arrow.classList.add('tree-node-arrow--expanded');
+    });
+  } else {
+    // File — open on click
+    node.addEventListener('click', () => {
+      state.currentPath = parentPath;
+      openFile(item.name);
+    });
+  }
+
+  return node;
 }
 
 function wireNewFileButton(container) {
@@ -2707,10 +3628,13 @@ async function renderEditorView() {
   });
 
   // Edit button
-  container.querySelector('#edit-btn').addEventListener('click', () => {
-    state.editingFile = true;
-    renderEditorView();
-  });
+  const editBtnEl = container.querySelector('#edit-btn');
+  if (editBtnEl) {
+    editBtnEl.addEventListener('click', () => {
+      state.editingFile = true;
+      renderEditorView();
+    });
+  }
 
   // Tab clicks
   container.querySelectorAll('.editor-tab').forEach(el => {
@@ -2862,19 +3786,110 @@ async function renderEditorView() {
       });
     }
   } else {
-    // Read-only mode with line numbers + syntax highlighting
+    // Read-only mode with line numbers + syntax highlighting + diff gutter
     const lang = langFromPath(state.activeTab || 'txt');
     const lines = content.split('\n');
     let codeHtml = '<div class="code-area">';
+
+    // Diff data
+    const added = state.diffVisible && state.diffLines ? state.diffLines.added : new Set();
+    const removed = state.diffVisible && state.diffLines ? state.diffLines.removed : new Set();
+
     lines.forEach((line, i) => {
-      const num = String(i + 1).padStart(4);
-      codeHtml += `<div class="code-line"><span class="line-num">${num}</span><span class="line-content">${highlightCode(line, lang)}</span></div>`;
+      const lineNum = i + 1;
+      const num = String(lineNum).padStart(4);
+      let numClass = 'line-num';
+      if (added.has(lineNum)) numClass += ' line-num--added';
+      else if (removed.has(lineNum)) numClass += ' line-num--removed';
+      codeHtml += `<div class="code-line"><span class="${numClass}">${num}</span><span class="line-content">${highlightCode(line, lang)}</span></div>`;
     });
     codeHtml += '</div>';
 
     const contentArea = container.querySelector('.folder-loading');
     if (contentArea) contentArea.outerHTML = codeHtml;
+
+    // Add diff toggle to the toolbar (or after back bar)
+    const backBar = container.querySelector('.editor-back-bar');
+    if (backBar && !backBar.querySelector('.diff-toggle-btn')) {
+      const diffToggle = document.createElement('button');
+      diffToggle.className = 'diff-toggle-btn' + (state.diffVisible ? ' diff-toggle-btn--active' : '');
+      diffToggle.textContent = 'Diff';
+      diffToggle.title = 'Toggle git diff gutter';
+      diffToggle.addEventListener('click', async () => {
+        state.diffVisible = !state.diffVisible;
+        if (state.diffVisible && !state.diffLines) {
+          await fetchGitDiff();
+        }
+        renderEditorView();
+      });
+      backBar.appendChild(diffToggle);
+    }
+
+    // Fetch git diff on file open
+    if (!state.diffLines) {
+      fetchGitDiff();
+    }
   }
+}
+
+// ── Git Diff ──────────────────────────────────────────
+async function fetchGitDiff() {
+  const tab = state.openTabs.find(t => t.path === state.activeTab);
+  if (!tab) return;
+  const filePath = fullPath(tab.dirPath, tab.name);
+  const fp = state.workspaceRoot + '/' + filePath;
+  try {
+    const res = await fetch(`${API_BASE}/git/diff?file=${encodeURIComponent(fp)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.diff) {
+      state.diffLines = parseUnifiedDiff(data.diff);
+    }
+  } catch (e) {
+    // Silently ignore if git is not available
+  }
+}
+
+function parseUnifiedDiff(diff) {
+  const added = new Set();
+  const removed = new Set();
+  const lines = diff.split('\n');
+  for (const line of lines) {
+    const hunkMatch = line.match(/^@@\s+-(\d+)(?:,\d+)?\s+\+(\d+)(?:,\d+)?\s+@@/);
+    if (hunkMatch) {
+      let oldLine = parseInt(hunkMatch[1]);
+      let newLine = parseInt(hunkMatch[2]);
+      // We need to scan the hunk; we can't easily do that here without full parsing
+      // Instead do a simpler approach: just scan for + and - lines
+    }
+  }
+  // Simpler approach: scan all lines directly for +/- prefix
+  // Unified diff context: lines starting with + are added, - are removed
+  // But we need to map them to the new file's line numbers
+  let currentOld = 1;
+  let currentNew = 1;
+  for (const line of lines) {
+    if (line.startsWith('---') || line.startsWith('+++') || line.startsWith('diff ') || line.startsWith('index ')) {
+      continue;
+    }
+    const hunkMatch = line.match(/^@@\s+-(\d+),\d+\s+\+(\d+),\d+\s+@@/);
+    if (hunkMatch) {
+      currentOld = parseInt(hunkMatch[1]);
+      currentNew = parseInt(hunkMatch[2]);
+      continue;
+    }
+    if (line.startsWith('+') && !line.startsWith('+++')) {
+      added.add(currentNew);
+      currentNew++;
+    } else if (line.startsWith('-') && !line.startsWith('---')) {
+      removed.add(currentOld);
+      currentOld++;
+    } else if (!line.startsWith('+') && !line.startsWith('-')) {
+      currentOld++;
+      currentNew++;
+    }
+  }
+  return { added, removed };
 }
 
 // ── Syntax Highlighting ────────────────────────────────
@@ -3199,9 +4214,9 @@ function initTerminal() {
   xtermInstance.open(container);
   termFitAddon.fit();
 
-  // Connect WebSocket to backend terminal gateway
+  // Connect WebSocket to backend terminal gateway (namespace /terminal)
   const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsUrl = `${wsProto}//${location.host}`;
+  const wsUrl = `${wsProto}//${location.host}/terminal`;
   termSocket = window.io(wsUrl, {
     path: '/terminal',
     transports: ['polling', 'websocket'],
@@ -3274,6 +4289,8 @@ async function render() {
     ? 'topbar-btn topbar-btn--active' : 'topbar-btn';
   document.getElementById('btn-toggle-list').className = state.viewMode === 'list'
     ? 'topbar-btn topbar-btn--active' : 'topbar-btn';
+  document.getElementById('btn-toggle-tree').className = state.viewMode === 'tree'
+    ? 'topbar-btn topbar-btn--active' : 'topbar-btn';
 }
 
 // ── Event handlers ─────────────────────────────────────
@@ -3284,6 +4301,11 @@ document.getElementById('btn-toggle-grid').addEventListener('click', () => {
 
 document.getElementById('btn-toggle-list').addEventListener('click', () => {
   state.viewMode = 'list';
+  render();
+});
+
+document.getElementById('btn-toggle-tree').addEventListener('click', () => {
+  state.viewMode = 'tree';
   render();
 });
 
@@ -3396,6 +4418,7 @@ document.getElementById('term-close').addEventListener('click', (e) => {
 // ── Chat – Sessions & Messages ─────────────────────────────
 const chatInput = document.getElementById('chat-input');
 const chatSendBtn = document.getElementById('chat-send');
+const chatStopBtn = document.getElementById('chat-stop');
 const chatMessages = document.getElementById('chat-messages');
 const chatSessionBar = document.getElementById('chat-session-bar');
 const chatSessionList = document.getElementById('chat-session-list');
@@ -3403,10 +4426,146 @@ const chatSessionTitle = document.getElementById('chat-session-title');
 const chatSessionToggle = document.getElementById('chat-session-toggle');
 const chatNewSessionBtn = document.getElementById('chat-new-session');
 const chatNewSessionBarBtn = document.getElementById('chat-new-session-bar');
+const chatContextPills = document.getElementById('chat-context-pills');
+const chatAttachBtn = document.getElementById('chat-attach-btn');
+const chatAttachDropdown = document.getElementById('chat-attach-dropdown');
+const chatScrollFab = document.getElementById('chat-scroll-fab');
 let chatLoading = false;
 let currentSessionId = null;
 let sessions = [];
 let sessionBarVisible = false;
+let streamAbort = null;          // AbortController for streaming
+let attachedContext = null;       // { type, label, content }
+let streamingBubble = null;      // The bubble being built during streaming
+
+// ── Auto-scroll smarts ──
+function isNearBottom() {
+  return chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 50;
+}
+
+chatMessages.addEventListener('scroll', () => {
+  const fab = chatScrollFab;
+  if (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight > 100) {
+    fab.classList.add('chat-scroll-fab--visible');
+  } else {
+    fab.classList.remove('chat-scroll-fab--visible');
+  }
+});
+
+chatScrollFab.addEventListener('click', () => {
+  chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+  chatScrollFab.classList.remove('chat-scroll-fab--visible');
+});
+
+// ── Attach context dropdown ──
+chatAttachBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  chatAttachDropdown.classList.toggle('chat-attach-dropdown--open');
+});
+document.addEventListener('click', () => {
+  chatAttachDropdown.classList.remove('chat-attach-dropdown--open');
+});
+
+chatAttachDropdown.querySelectorAll('.chat-attach-dropdown-item').forEach(item => {
+  item.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    chatAttachDropdown.classList.remove('chat-attach-dropdown--open');
+    const type = item.dataset.attach;
+    if (type === 'current-file') {
+      const tab = state.openTabs.find(t => t.path === state.activeTab);
+      if (!tab) { alert('No file is currently open.'); return; }
+      const fileData = state.files[tab.path];
+      if (!fileData || !fileData.content) { alert('File content not loaded.'); return; }
+      const ext = tab.name.split('.').pop() || '';
+      attachedContext = {
+        type: 'file',
+        label: `File: ${tab.name}`,
+        content: `[File: ${tab.name}]\n\`\`\`${ext}\n${fileData.content}\n\`\`\``
+      };
+    } else if (type === 'folder-contents') {
+      const entries = state.directoryCache[state.currentPath] || state.currentDir || [];
+      const listing = entries.map(e => `- ${e.type === 'directory' ? '📁' : '📄'} ${e.name} (${e.type})`).join('\n');
+      attachedContext = {
+        type: 'folder',
+        label: `Folder: ${state.currentPath || 'root'}`,
+        content: `[Folder contents of: ${state.currentPath || 'root'}]\n${listing || '(empty)'}`
+      };
+    }
+    renderContextPills();
+  });
+});
+
+function renderContextPills() {
+  chatContextPills.innerHTML = '';
+  if (!attachedContext) return;
+  const pill = document.createElement('div');
+  pill.className = 'chat-context-pill';
+  pill.innerHTML = `${attachedContext.label} <span class="chat-context-pill-remove" id="ctx-pill-remove">✕</span>`;
+  pill.querySelector('#ctx-pill-remove').addEventListener('click', () => {
+    attachedContext = null;
+    renderContextPills();
+  });
+  chatContextPills.appendChild(pill);
+}
+
+// ── Syntax highlighting for chat code blocks ──
+function highlightChatCodeBlocks(bubble) {
+  const pres = bubble.querySelectorAll('pre code[class*="lang-"]');
+  pres.forEach(code => {
+    const cls = code.className;
+    const lang = cls.replace('lang-', '').replace(/^language-/, '');
+    // Map lang string to our highlighter's lang ID
+    const langMap = {
+      javascript: 'javascript', js: 'javascript', typescript: 'typescript', ts: 'typescript',
+      python: 'python', py: 'python', rust: 'rust', rs: 'rust', go: 'go',
+      sh: 'shell', bash: 'shell', zsh: 'shell', shell: 'shell',
+      yaml: 'yaml', yml: 'yaml', toml: 'toml', csv: 'csv',
+      md: 'markdown', markdown: 'markdown', sql: 'sql', json: 'json',
+      html: 'html', css: 'css', scss: 'scss', dockerfile: 'dockerfile',
+      dotenv: 'dotenv', xml: 'xml',
+    };
+    const hlLang = langMap[lang] || lang;
+    const lines = code.textContent.split('\n');
+    const hlHtml = lines.map(line => highlightCode(line, hlLang)).join('\n');
+    code.innerHTML = hlHtml;
+  });
+}
+
+// ── Copy button on code blocks ──
+function addCopyButtonsToCodeBlocks(bubble) {
+  const pres = bubble.querySelectorAll('pre');
+  pres.forEach(pre => {
+    if (pre.querySelector('.code-copy-btn')) return;
+    const btn = document.createElement('button');
+    btn.className = 'code-copy-btn';
+    btn.textContent = '📋';
+    btn.title = 'Copy code';
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const code = pre.querySelector('code');
+      const text = code ? code.textContent : pre.textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = '✓';
+        btn.classList.add('code-copy-btn--copied');
+        setTimeout(() => {
+          btn.textContent = '📋';
+          btn.classList.remove('code-copy-btn--copied');
+        }, 1500);
+      } catch {
+        btn.textContent = '✗';
+        setTimeout(() => { btn.textContent = '📋'; }, 1500);
+      }
+    });
+    pre.appendChild(btn);
+  });
+}
+
+// ── Post-process assistant bubble ──
+function postProcessAssistantBubble(bubble) {
+  highlightChatCodeBlocks(bubble);
+  addCopyButtonsToCodeBlocks(bubble);
+}
 
 // ── Session sidebar toggle ──
 chatSessionToggle.addEventListener('click', () => {
@@ -3435,7 +4594,6 @@ async function createNewSession() {
     await loadSessions();
   } catch (e) {
     console.error('Failed to create session:', e);
-    // Fallback: just clear the UI
     currentSessionId = null;
     updateSessionTitle(null);
     renderMessages([]);
@@ -3612,33 +4770,77 @@ function renderMessages(messages) {
 
 function renderSingleMessage(msg) {
   const role = msg.role;
+  const wrapper = document.createElement('div');
+  wrapper.className = `chat-msg chat-msg--${role}`;
+  wrapper.dataset.role = role;
+
+  // Add action buttons (edit for user, regenerate for assistant)
+  const actions = document.createElement('div');
+  actions.className = 'chat-msg-actions';
 
   if (role === 'user') {
-    const el = document.createElement('div');
-    el.className = 'chat-msg chat-msg--user';
-    el.innerHTML = `<div class="chat-msg-bubble">${escapeHtml(msg.content)}</div>
-      <div class="chat-msg-meta">you</div>`;
-    chatMessages.appendChild(el);
+    const editBtn = document.createElement('button');
+    editBtn.className = 'chat-msg-action-btn';
+    editBtn.title = 'Edit message';
+    editBtn.textContent = '✏';
+    editBtn.addEventListener('click', () => {
+      chatInput.value = msg.content;
+      chatInput.focus();
+      chatInput.style.height = 'auto';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
+    });
+    actions.appendChild(editBtn);
+  }
+
+  if (role === 'assistant') {
+    const regenBtn = document.createElement('button');
+    regenBtn.className = 'chat-msg-action-btn';
+    regenBtn.title = 'Regenerate response';
+    regenBtn.textContent = '↻';
+    regenBtn.addEventListener('click', () => {
+      // Find the user message just before this assistant one
+      const msgs = chatMessages.querySelectorAll('.chat-msg');
+      let prevUserContent = null;
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        const m = msgs[i];
+        if (m === wrapper) break;
+        if (m.dataset.role === 'user') {
+          prevUserContent = m.querySelector('.chat-msg-bubble')?.textContent;
+          break;
+        }
+      }
+      if (prevUserContent) {
+        chatInput.value = prevUserContent;
+        sendChat();
+      }
+    });
+    actions.appendChild(regenBtn);
+  }
+
+  wrapper.appendChild(actions);
+
+  if (role === 'user') {
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-msg-bubble';
+    bubble.textContent = msg.content;
+    wrapper.appendChild(bubble);
+    chatMessages.appendChild(wrapper);
     return;
   }
 
   if (role === 'assistant') {
-    const el = document.createElement('div');
-    el.className = 'chat-msg chat-msg--assistant';
-
-    // Render text content
     if (msg.content) {
       const bubble = document.createElement('div');
       bubble.className = 'chat-msg-bubble';
       bubble.innerHTML = renderMarkdown(msg.content);
-      el.appendChild(bubble);
+      postProcessAssistantBubble(bubble);
+      wrapper.appendChild(bubble);
     }
 
-    // Render tool calls
     if (msg.toolCalls && msg.toolCalls.length > 0) {
       msg.toolCalls.forEach(tc => {
         const toolEl = createToolCallBlock(tc);
-        el.appendChild(toolEl);
+        wrapper.appendChild(toolEl);
       });
     }
 
@@ -3647,19 +4849,17 @@ function renderSingleMessage(msg) {
       bubble.className = 'chat-msg-bubble';
       bubble.style.opacity = '0.5';
       bubble.textContent = '(empty)';
-      el.appendChild(bubble);
+      wrapper.appendChild(bubble);
     }
 
-    chatMessages.appendChild(el);
+    chatMessages.appendChild(wrapper);
     return;
   }
 
   if (role === 'tool') {
-    const el = document.createElement('div');
-    el.className = 'chat-msg chat-msg--assistant';
     const toolEl = createToolResultBlock(msg);
-    el.appendChild(toolEl);
-    chatMessages.appendChild(el);
+    wrapper.appendChild(toolEl);
+    chatMessages.appendChild(wrapper);
     return;
   }
 }
@@ -3708,70 +4908,146 @@ function createToolResultBlock(msg) {
   return wrapper;
 }
 
-// ── Add a single message optimistically (before server response) ──
-function addChatMessage(role, content) {
+// ── Typing indicator ──
+function addTypingIndicator() {
   const msg = document.createElement('div');
-  msg.className = `chat-msg chat-msg--${role}`;
+  msg.className = 'chat-msg chat-msg--assistant';
+  msg.id = 'chat-typing';
+  const indicator = document.createElement('div');
+  indicator.className = 'chat-msg-bubble typing-indicator';
+  indicator.innerHTML = '<span></span><span></span><span></span>';
+  msg.appendChild(indicator);
+  chatMessages.appendChild(msg);
+  if (isNearBottom()) chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 
+function removeTypingIndicator() {
+  const el = document.getElementById('chat-typing');
+  if (el) el.remove();
+}
+
+// ── Streaming bubble ──
+function createStreamingBubble() {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'chat-msg chat-msg--assistant';
+  wrapper.id = 'chat-streaming';
   const bubble = document.createElement('div');
   bubble.className = 'chat-msg-bubble';
-  if (role === 'assistant') {
-    bubble.innerHTML = renderMarkdown(content);
-  } else {
-    bubble.textContent = content;
-  }
-  msg.appendChild(bubble);
-
-  const meta = document.createElement('div');
-  meta.className = 'chat-msg-meta';
-  meta.textContent = role === 'user' ? 'you' : 'assistant';
-  msg.appendChild(meta);
-
-  chatMessages.appendChild(msg);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  wrapper.appendChild(bubble);
+  chatMessages.appendChild(wrapper);
+  streamingBubble = bubble;
   return bubble;
 }
 
-function addLoadingBubble() {
-  const msg = document.createElement('div');
-  msg.className = 'chat-msg chat-msg--assistant';
-  msg.id = 'chat-loading';
-
-  const bubble = document.createElement('div');
-  bubble.className = 'chat-msg-bubble';
-  bubble.textContent = 'Thinking…';
-  bubble.style.opacity = '0.5';
-  msg.appendChild(bubble);
-
-  chatMessages.appendChild(msg);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+function appendStreamToken(token) {
+  if (!streamingBubble) {
+    createStreamingBubble();
+  }
+  streamingBubble.innerHTML = renderMarkdown(streamingBubble._rawText + token);
+  streamingBubble._rawText = (streamingBubble._rawText || '') + token;
+  postProcessAssistantBubble(streamingBubble);
+  if (isNearBottom()) chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-function removeLoadingBubble() {
-  const el = document.getElementById('chat-loading');
-  if (el) el.remove();
+function finalizeStreamingBubble() {
+  const el = document.getElementById('chat-streaming');
+  if (el) {
+    el.removeAttribute('id');
+    // Re-post process after final markdown
+    const bubble = el.querySelector('.chat-msg-bubble');
+    if (bubble) {
+      const raw = bubble._rawText || '';
+      bubble.innerHTML = renderMarkdown(raw);
+      postProcessAssistantBubble(bubble);
+    }
+    // Add actions
+    const wrapper = el;
+    const existingActions = wrapper.querySelector('.chat-msg-actions');
+    if (!existingActions) {
+      const actions = document.createElement('div');
+      actions.className = 'chat-msg-actions';
+      const regenBtn = document.createElement('button');
+      regenBtn.className = 'chat-msg-action-btn';
+      regenBtn.title = 'Regenerate';
+      regenBtn.textContent = '↻';
+      regenBtn.addEventListener('click', () => {
+        const msgs = chatMessages.querySelectorAll('.chat-msg');
+        let prevUserContent = null;
+        for (let i = msgs.length - 1; i >= 0; i--) {
+          const m = msgs[i];
+          if (m === wrapper) break;
+          if (m.dataset.role === 'user') {
+            prevUserContent = m.querySelector('.chat-msg-bubble')?.textContent;
+            break;
+          }
+        }
+        if (prevUserContent) {
+          chatInput.value = prevUserContent;
+          sendChat();
+        }
+      });
+      actions.appendChild(regenBtn);
+      wrapper.insertBefore(actions, wrapper.firstChild);
+    }
+  }
+  streamingBubble = null;
+}
+
+function addStreamToolCall(toolCall) {
+  const wrapper = document.getElementById('chat-streaming');
+  if (wrapper) {
+    const toolEl = createToolCallBlock(toolCall);
+    wrapper.appendChild(toolEl);
+  }
+  if (isNearBottom()) chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 async function sendChat() {
   const text = chatInput.value.trim();
   if (!text || chatLoading) return;
 
-  chatLoading = true;
-  chatSendBtn.disabled = true;
-  chatSendBtn.style.opacity = '0.5';
+  // Build full message with context
+  let fullMessage = text;
+  if (attachedContext) {
+    fullMessage = attachedContext.content + '\n\nUser message: ' + text;
+  }
 
-  // Optimistically add user message
-  addChatMessage('user', text);
+  chatLoading = true;
+  chatSendBtn.classList.add('chat-send-btn--hidden');
+  chatStopBtn.classList.add('chat-stop-btn--visible');
   chatInput.value = '';
   chatInput.style.height = 'auto';
+  attachedContext = null;
+  renderContextPills();
 
-  // Show loading
-  addLoadingBubble();
+  // Add user message
+  addChatMessage('user', text);
+
+  // Show typing indicator
+  addTypingIndicator();
 
   const model = document.getElementById('chat-model').textContent || '';
 
+  // Abort controller for stop
+  streamAbort = new AbortController();
+
+  // Stop button handler
+  chatStopBtn.onclick = () => {
+    if (streamAbort) {
+      streamAbort.abort();
+      streamAbort = null;
+    }
+    removeTypingIndicator();
+    if (streamingBubble && streamingBubble._rawText) {
+      finalizeStreamingBubble();
+    }
+    chatLoading = false;
+    chatStopBtn.classList.remove('chat-stop-btn--visible');
+    chatSendBtn.classList.remove('chat-send-btn--hidden');
+  };
+
   try {
-    // Create session if we don't have one
+    // Create session if needed
     if (!currentSessionId) {
       try {
         const sessRes = await fetch(`${API_BASE}/sessions`, {
@@ -3788,45 +5064,138 @@ async function sendChat() {
       }
     }
 
-    const res = await fetch(`${API_BASE}/chat`, {
+    const res = await fetch(`${API_BASE}/chat/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sessionId: currentSessionId,
-        message: text,
+        message: fullMessage,
         model: model || undefined,
         workspaceRoot: state.workspaceRoot || undefined,
       }),
+      signal: streamAbort.signal,
     });
-    const data = await res.json();
-    removeLoadingBubble();
 
-    if (data.error) {
-      addChatMessage('assistant', `⚠ ${data.message || 'Error contacting provider'}`);
-      if (data.model) {
-        document.getElementById('chat-model').textContent = data.model;
-      }
-    } else {
-      // Re-render from session data if we have it
-      if (data.session && data.session.messages) {
-        renderMessages(data.session.messages);
-        updateSessionTitle(data.session);
-        currentSessionId = data.sessionId || currentSessionId;
-      } else if (data.content) {
-        addChatMessage('assistant', data.content);
-      }
-      if (data.model) {
-        document.getElementById('chat-model').textContent = data.model;
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`HTTP ${res.status}: ${errText}`);
+    }
+
+    removeTypingIndicator();
+
+    // Read SSE stream
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const jsonStr = line.slice(6);
+        try {
+          const event = JSON.parse(jsonStr);
+          switch (event.type) {
+            case 'token':
+              appendStreamToken(event.content);
+              break;
+            case 'tool_call':
+              addStreamToolCall({ function: { name: event.name, arguments: event.args } });
+              break;
+            case 'done':
+              finalizeStreamingBubble();
+              if (event.session) {
+                updateSessionTitle(event.session);
+                currentSessionId = event.sessionId || currentSessionId;
+                if (event.session.model) {
+                  document.getElementById('chat-model').textContent = event.session.model;
+                }
+              }
+              break;
+            case 'error':
+              const errBubble = createStreamingBubble();
+              errBubble.innerHTML = `⚠ ${event.message || 'Error'}`;
+              errBubble.style.opacity = '1';
+              finalizeStreamingBubble();
+              break;
+          }
+        } catch (e) {
+          // Ignore malformed SSE lines
+        }
       }
     }
+
+    // Process leftover buffer
+    if (buffer && buffer.startsWith('data: ')) {
+      try {
+        const event = JSON.parse(buffer.slice(6));
+        if (event.type === 'done') {
+          finalizeStreamingBubble();
+          if (event.session) {
+            updateSessionTitle(event.session);
+            currentSessionId = event.sessionId || currentSessionId;
+          }
+        }
+      } catch (e) {}
+    }
   } catch (e) {
-    removeLoadingBubble();
-    addChatMessage('assistant', `⚠ Network error: ${e.message}`);
+    if (e.name === 'AbortError') {
+      // Already handled by stop button
+    } else {
+      removeTypingIndicator();
+      if (streamingBubble) {
+        finalizeStreamingBubble();
+      }
+      addChatMessage('assistant', `⚠ Network error: ${e.message}`);
+    }
   }
 
   chatLoading = false;
-  chatSendBtn.disabled = false;
-  chatSendBtn.style.opacity = '1';
+  streamAbort = null;
+  chatStopBtn.classList.remove('chat-stop-btn--visible');
+  chatSendBtn.classList.remove('chat-send-btn--hidden');
+}
+
+// ── Add a single message (non-streaming) ──
+function addChatMessage(role, content) {
+  const wrapper = document.createElement('div');
+  wrapper.className = `chat-msg chat-msg--${role}`;
+  wrapper.dataset.role = role;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-msg-bubble';
+  if (role === 'assistant') {
+    bubble.innerHTML = renderMarkdown(content);
+    postProcessAssistantBubble(bubble);
+  } else {
+    bubble.textContent = content;
+  }
+  wrapper.appendChild(bubble);
+
+  // Add actions
+  const actions = document.createElement('div');
+  actions.className = 'chat-msg-actions';
+  if (role === 'user') {
+    const editBtn = document.createElement('button');
+    editBtn.className = 'chat-msg-action-btn';
+    editBtn.title = 'Edit';
+    editBtn.textContent = '✏';
+    editBtn.addEventListener('click', () => {
+      chatInput.value = content;
+      chatInput.focus();
+    });
+    actions.appendChild(editBtn);
+  }
+  wrapper.appendChild(actions);
+
+  chatMessages.appendChild(wrapper);
+  if (isNearBottom()) chatMessages.scrollTop = chatMessages.scrollHeight;
+  return bubble;
 }
 
 // ── Re-attach input listeners ──
@@ -4279,6 +5648,175 @@ async function createNewWorkspace() {
     alert('Could not create workspace: ' + err.message);
   }
 }
+
+// ── Keyboard Shortcuts ──────────────────────────────────
+const kbHelpOverlay = document.getElementById('kb-help-overlay');
+const quickOpenOverlay = document.getElementById('quick-open-overlay');
+const quickOpenInput = document.getElementById('quick-open-input');
+const quickOpenList = document.getElementById('quick-open-list');
+
+let kbHelpShown = false;
+
+// Show help on first load or ? press
+function showKbHelp() {
+  kbHelpOverlay.classList.add('kb-help-overlay--open');
+  setTimeout(() => {
+    kbHelpOverlay.addEventListener('click', function handler(e) {
+      if (e.target === kbHelpOverlay) {
+        kbHelpOverlay.classList.remove('kb-help-overlay--open');
+        kbHelpOverlay.removeEventListener('click', handler);
+      }
+    });
+  }, 50);
+}
+
+function hideKbHelp() {
+  kbHelpOverlay.classList.remove('kb-help-overlay--open');
+}
+
+kbHelpOverlay.addEventListener('click', (e) => {
+  if (e.target === kbHelpOverlay) hideKbHelp();
+});
+
+// Quick open
+function showQuickOpen() {
+  quickOpenOverlay.classList.add('quick-open-overlay--open');
+  quickOpenInput.value = '';
+  quickOpenInput.focus();
+  updateQuickOpenList('');
+}
+
+function hideQuickOpen() {
+  quickOpenOverlay.classList.remove('quick-open-overlay--open');
+}
+
+quickOpenInput.addEventListener('input', () => {
+  updateQuickOpenList(quickOpenInput.value.toLowerCase());
+});
+
+quickOpenInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    hideQuickOpen();
+  }
+  if (e.key === 'Enter') {
+    const firstItem = quickOpenList.querySelector('.quick-open-item');
+    if (firstItem) {
+      const path = firstItem.dataset.tabPath;
+      state.activeTab = path;
+      state.editingFile = false;
+      state.currentView = 'editor';
+      render();
+    }
+    hideQuickOpen();
+  }
+});
+
+quickOpenOverlay.addEventListener('click', (e) => {
+  if (e.target === quickOpenOverlay) hideQuickOpen();
+});
+
+function updateQuickOpenList(filter) {
+  quickOpenList.innerHTML = '';
+  const tabs = state.openTabs.filter(t =>
+    !filter || t.name.toLowerCase().includes(filter) || t.path.toLowerCase().includes(filter)
+  );
+  if (tabs.length === 0) {
+    quickOpenList.innerHTML = '<div class="quick-open-item" style="color:var(--ink-muted)">No matching files</div>';
+    return;
+  }
+  tabs.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'quick-open-item';
+    item.textContent = t.name + '  —  ' + t.path;
+    item.dataset.tabPath = t.path;
+    item.addEventListener('click', () => {
+      state.activeTab = t.path;
+      state.editingFile = false;
+      state.currentView = 'editor';
+      render();
+      hideQuickOpen();
+    });
+    quickOpenList.appendChild(item);
+  });
+}
+
+// Global keydown handler
+document.addEventListener('keydown', (e) => {
+  // Don't capture when typing in inputs/textarea (except the quick-open input)
+  const tag = document.activeElement?.tagName?.toLowerCase();
+  const isEditing = (tag === 'input' || tag === 'textarea') && document.activeElement !== quickOpenInput;
+
+  // ? always works
+  if (e.key === '?' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !isEditing) {
+    e.preventDefault();
+    if (kbHelpOverlay.classList.contains('kb-help-overlay--open')) {
+      hideKbHelp();
+    } else {
+      showKbHelp();
+    }
+    return;
+  }
+
+  // Escape: close chat, close editor, close settings, close quick-open
+  if (e.key === 'Escape') {
+    if (quickOpenOverlay.classList.contains('quick-open-overlay--open')) {
+      hideQuickOpen();
+      return;
+    }
+    if (kbHelpOverlay.classList.contains('kb-help-overlay--open')) {
+      hideKbHelp();
+      return;
+    }
+    if (document.getElementById('settings-overlay').classList.contains('settings-overlay--open')) {
+      closeSettings();
+      return;
+    }
+    if (state.chatExpanded) {
+      state.chatExpanded = false;
+      document.getElementById('chat-panel').className = 'chat-panel chat-panel--collapsed';
+      updateMainLayout();
+      return;
+    }
+    if (state.currentView === 'editor') {
+      state.currentView = 'folder';
+      state.editingFile = false;
+      render();
+      return;
+    }
+    return;
+  }
+
+  // Ctrl+Enter: send chat
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    if (state.chatExpanded && !chatLoading) {
+      e.preventDefault();
+      sendChat();
+      return;
+    }
+  }
+
+  if (!e.ctrlKey && !e.metaKey) return;
+
+  const key = e.key.toLowerCase();
+
+  // Ctrl+K: toggle chat
+  if (key === 'k') {
+    e.preventDefault();
+    state.chatExpanded = !state.chatExpanded;
+    const panel = document.getElementById('chat-panel');
+    panel.className = state.chatExpanded
+      ? 'chat-panel chat-panel--expanded'
+      : 'chat-panel chat-panel--collapsed';
+    updateMainLayout();
+    if (state.chatExpanded) chatInput.focus();
+  }
+
+  // Ctrl+P: quick open
+  if (key === 'p') {
+    e.preventDefault();
+    showQuickOpen();
+  }
+});
 
 // ── Initial render ─────────────────────────────────────
 if (state.workspaceRoot) {

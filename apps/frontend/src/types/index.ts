@@ -36,6 +36,26 @@ export interface OpenTab {
   cursor: CursorPosition;
   /** Scroll position (persisted, restored on reload) */
   scroll: ScrollPosition;
+  /** How to display this file — 'code' (Monaco) or 'spreadsheet' (SheetJS table) */
+  viewMode?: 'code' | 'spreadsheet';
+}
+
+// ── Spreadsheet types ──
+
+export interface SpreadsheetData {
+  sheetNames: string[];
+  activeSheet: string;
+  /** sheetName → 2D array of cell values (all strings) */
+  sheets: Record<string, string[][]>;
+}
+
+// ── Web app types ──
+
+export interface WebApp {
+  name: string;
+  url: string;
+  description?: string;
+  source: 'config' | 'auto';
 }
 
 // ── Language detection ──
@@ -116,7 +136,12 @@ export type WorkspaceAction =
   | { type: 'UPDATE_BRANCH'; branch: string }
   | { type: 'UPDATE_CONTEXT_WINDOW'; window: ContextWindowState }
   | { type: 'CLEAR_AI_CONTEXT' }
-  | { type: 'RESTORE_STATE'; state: WorkspaceState };
+  | { type: 'RESTORE_STATE'; state: WorkspaceState }
+  // Spreadsheet actions
+  | { type: 'SET_SPREADSHEET_DATA'; filePath: string; data: SpreadsheetData }
+  | { type: 'SET_ACTIVE_SHEET'; filePath: string; sheetName: string }
+  // Web app actions
+  | { type: 'SET_WEB_APPS'; apps: WebApp[] };
 
 // ── Workspace state ──
 
@@ -133,4 +158,8 @@ export interface WorkspaceState {
   chatMessages: ChatMessage[];
   /** AI context data */
   aiContext: AIContext;
+  /** Spreadsheet view data keyed by filePath */
+  spreadsheetData: Map<string, SpreadsheetData>;
+  /** Available web apps for current project */
+  webApps: WebApp[];
 }

@@ -8,6 +8,13 @@ const DEFAULT_AI_CONTEXT: AIContext = {
   updatedAt: new Date().toISOString(),
 };
 
+const SPREADSHEET_EXTENSIONS = new Set(['.csv', '.tsv', '.xls', '.xlsx']);
+
+function isSpreadsheet(filename: string): boolean {
+  const ext = filename.includes('.') ? '.' + filename.split('.').pop()!.toLowerCase() : '';
+  return SPREADSHEET_EXTENSIONS.has(ext);
+}
+
 const initialState: WorkspaceState = {
   root: null,
   files: new Map(),
@@ -15,6 +22,8 @@ const initialState: WorkspaceState = {
   activeTab: '',
   chatMessages: [],
   aiContext: DEFAULT_AI_CONTEXT,
+  spreadsheetData: new Map(),
+  webApps: [],
 };
 
 export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): WorkspaceState {
@@ -36,6 +45,7 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
         ...action.tab,
         cursor: action.tab.cursor ?? DEFAULT_CURSOR,
         scroll: action.tab.scroll ?? DEFAULT_SCROLL,
+        viewMode: action.tab.viewMode ?? (isSpreadsheet(action.tab.label) ? 'spreadsheet' : 'code'),
       };
       return {
         ...state,
@@ -182,6 +192,23 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
     case 'CLEAR_AI_CONTEXT':
       return { ...state, aiContext: { updatedAt: new Date().toISOString() } };
 
+    case 'SET_SPREADSHEET_DATA': {
+      const newSpreadsheetData = new Map(state.spreadsheetData);
+      newSpreadsheetData.set(action.filePath, action.data);
+      return { ...state, spreadsheetData: newSpreadsheetData };
+    }
+
+    case 'SET_ACTIVE_SHEET': {
+      const existing = state.spreadsheetData.get(action.filePath);
+      if (!existing) return state;
+      const newSpreadsheetData = new Map(state.spreadsheetData);
+      newSpreadsheetData.set(action.filePath, { ...existing, activeSheet: action.sheetName });
+      return { ...state, spreadsheetData: newSpreadsheetData };
+    }
+
+    case 'SET_WEB_APPS':
+      return { ...state, webApps: action.apps };
+
     case 'RESTORE_STATE':
       return { ...action.state };
 
@@ -212,4 +239,4 @@ export function useWorkspace(): WorkspaceContextValue {
   return ctx;
 }
 
-export { DEFAULT_CURSOR, DEFAULT_SCROLL, DEFAULT_AI_CONTEXT };
+export { DEFAULT_CURSOR, DEFAULT_SCROLL, DEFAULT_AI_CONTEXT, SPREADSHEET_EXTENSIONS, isSpreadsheet };

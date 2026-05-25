@@ -63,6 +63,8 @@ function getIconForFile(name: string): string {
   if (name.endsWith('.py')) return '🐍';
   if (name.endsWith('.rs')) return '🦀';
   if (name.endsWith('.go')) return '🔵';
+  if (name.endsWith('.xlsx') || name.endsWith('.xls')) return '📊';
+  if (name.endsWith('.csv') || name.endsWith('.tsv')) return '📊';
   return '📄';
 }
 

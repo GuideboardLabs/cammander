@@ -127,6 +127,8 @@ export function useAppPersistence(options: UseAppPersistenceOptions = {}): UseAp
             activeTab,
             chatMessages: [],
             aiContext: { updatedAt: new Date().toISOString() },
+            spreadsheetData: new Map(),
+            webApps: [],
           },
         });
       }

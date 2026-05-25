@@ -1,4 +1,5 @@
 import type { OpenTab } from '@/types';
+import { isSpreadsheet } from '@/stores/WorkspaceContext';
 import './EditorTabs.css';
 
 interface EditorTabsProps {
@@ -21,17 +22,20 @@ export function EditorTabs({ tabs, activeTab, onTabSelect, onTabClose }: EditorT
     <div className="editor-tabs" role="tablist" aria-label="Open files">
       {tabs.map((tab) => {
         const isActive = tab.filePath === activeTab;
+        const isSheet = tab.viewMode === 'spreadsheet' || isSpreadsheet(tab.label);
         return (
           <button
             key={tab.filePath}
             role="tab"
             aria-selected={isActive}
-            aria-controls="editor-pane"
-            className={`editor-tab ${isActive ? 'editor-tab--active' : ''}`}
+            aria-controls={isSheet ? 'spreadsheet-pane' : 'editor-pane'}
+            className={`editor-tab ${isActive ? 'editor-tab--active' : ''}${isSheet ? ' editor-tab--spreadsheet' : ''}`}
             onClick={() => onTabSelect(tab.filePath)}
             title={tab.filePath}
           >
-            <span className="editor-tab-label">{tab.label}</span>
+            <span className="editor-tab-label">
+              {isSheet ? '📊 ' : ''}{tab.label}
+            </span>
             {tab.modified && <span className="editor-tab-modified" title="Unsaved changes">●</span>}
             <span
               className="editor-tab-close"

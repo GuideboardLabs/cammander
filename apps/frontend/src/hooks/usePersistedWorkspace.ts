@@ -80,6 +80,8 @@ export function usePersistedWorkspace() {
           activeTab,
           chatMessages: [],
           aiContext: { updatedAt: new Date().toISOString() },
+          spreadsheetData: new Map(),
+          webApps: [],
         },
       });
     })();

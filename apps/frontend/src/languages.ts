@@ -36,6 +36,8 @@ export const LANGUAGE_MAP: Record<string, string> = {
   sql: 'sql',
   csv: 'csv',
   tsv: 'csv',
+  xls: 'spreadsheet',
+  xlsx: 'spreadsheet',
   dockerfile: 'dockerfile',
   makefile: 'makefile',
   proto: 'protobuf',

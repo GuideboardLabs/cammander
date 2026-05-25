@@ -75,6 +75,18 @@ export class FilesController {
       const base64 = buf.toString('base64');
       return { type: 'image', mime, data: `data:${mime};base64,${base64}`, size: stat.size, name: path.basename(resolved) };
     }
+    // Binary spreadsheet files
+    const isBinary = ['.xls', '.xlsx'].includes(ext);
+    if (isBinary) {
+      const MAX_BINARY = 20 * 1024 * 1024; // 20 MB
+      if (stat.size > MAX_BINARY) {
+        return { type: 'error', message: 'File too large for spreadsheet viewer (max 20 MB)', size: stat.size, name: path.basename(resolved) };
+      }
+      const buf = fs.readFileSync(resolved);
+      const base64 = buf.toString('base64');
+      const mime = ext === '.xlsx' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'application/vnd.ms-excel';
+      return { type: 'binary', mime, data: base64, size: stat.size, name: path.basename(resolved), ext };
+    }
     // Text file
     const MAX = 500000;
     const content = fs.readFileSync(resolved, 'utf-8');

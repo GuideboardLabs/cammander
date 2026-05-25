@@ -18,6 +18,7 @@ import { ToolsModule } from './modules/tools/tools.module';
 import { FilesModule } from './modules/files/files.module';
 import { GitModule } from './modules/git/git.module';
 import { TerminalModule } from './modules/terminal/terminal.module';
+import { ProjectModule } from './modules/project/project.module';
 import { CoreGatewayModule } from './gateway/gateway.module';
 import { environment } from './config/environment';
 
@@ -46,6 +47,7 @@ import { environment } from './config/environment';
     FilesModule,
     GitModule,
     TerminalModule,
+    ProjectModule,
   ],
 })
 export class AppModule {}

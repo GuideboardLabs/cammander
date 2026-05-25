@@ -1,0 +1,236 @@
+/* ── Web Apps Panel ── */
+
+.webapps-panel {
+  border-top: 1px solid var(--border-color, #2a2a4a);
+  font-size: 0.8rem;
+}
+
+.webapps-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-muted, #888);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color 0.15s;
+}
+
+.webapps-header:hover {
+  color: var(--text-primary, #e0e0e0);
+}
+
+.webapps-caret {
+  font-size: 0.65rem;
+  width: 10px;
+  text-align: center;
+}
+
+.webapps-title {
+  flex: 1;
+}
+
+.webapps-count {
+  background: var(--accent, #14b8a6);
+  color: var(--bg-primary, #1a1a2e);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 8px;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* ── List ── */
+
+.webapps-list {
+  padding: 0 8px 8px;
+}
+
+.webapps-loading {
+  color: var(--text-muted, #888);
+  padding: 8px 4px;
+  font-size: 0.75rem;
+}
+
+.webapps-error {
+  color: #ef4444;
+  padding: 8px 4px;
+  font-size: 0.75rem;
+}
+
+.webapps-empty {
+  padding: 8px 4px;
+  color: var(--text-muted, #888);
+}
+
+.webapps-empty p {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+}
+
+.webapps-hint {
+  font-size: 0.7rem !important;
+}
+
+.webapps-hint code {
+  background: var(--bg-tertiary, #12122a);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.7rem;
+}
+
+.webapps-example {
+  background: var(--bg-tertiary, #12122a);
+  color: var(--text-secondary, #aaa);
+  padding: 8px;
+  border-radius: 4px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.68rem;
+  overflow-x: auto;
+  margin: 4px 0 0;
+  white-space: pre;
+  border: 1px solid var(--border-color, #2a2a4a);
+}
+
+/* ── Groups ── */
+
+.webapps-group {
+  margin-bottom: 8px;
+}
+
+.webapps-group-label {
+  display: block;
+  padding: 4px 4px 2px;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--text-muted, #666);
+  letter-spacing: 0.5px;
+}
+
+/* ── App item ── */
+
+.webapp-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+
+.webapp-item:hover {
+  background: var(--bg-secondary, #16213e);
+}
+
+.webapp-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.webapp-name {
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.webapp-desc {
+  font-size: 0.68rem;
+  color: var(--text-muted, #888);
+}
+
+.webapp-url {
+  font-size: 0.65rem;
+  color: var(--accent, #14b8a6);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Open button ── */
+
+.webapp-open-btn {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color, #2a2a4a);
+  background: var(--bg-secondary, #16213e);
+  color: var(--accent, #14b8a6);
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.webapp-open-btn:hover {
+  background: var(--accent, #14b8a6);
+  color: var(--bg-primary, #1a1a2e);
+  border-color: var(--accent, #14b8a6);
+}
+
+/* ── Refresh button ── */
+
+.webapps-refresh-btn {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  color: var(--text-muted, #888);
+  background: transparent;
+  border: 1px dashed var(--border-color, #2a2a4a);
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.webapps-refresh-btn:hover {
+  color: var(--text-primary, #e0e0e0);
+  border-color: var(--text-muted, #666);
+}
+
+.webapps-refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Light mode ── */
+
+@media (prefers-color-scheme: light) {
+  .webapps-panel {
+    border-top-color: var(--border-color, #ddd);
+  }
+
+  .webapp-item:hover {
+    background: var(--bg-secondary, #f0f0f0);
+  }
+
+  .webapp-open-btn {
+    background: var(--bg-secondary, #f5f5f5);
+    border-color: var(--border-color, #ddd);
+  }
+
+  .webapps-example {
+    background: var(--bg-tertiary, #f0f0f0);
+    border-color: var(--border-color, #ddd);
+  }
+
+  .webapps-refresh-btn {
+    border-color: var(--border-color, #ddd);
+  }
+
+  .webapps-hint code {
+    background: var(--bg-tertiary, #f0f0f0);
+  }
+}

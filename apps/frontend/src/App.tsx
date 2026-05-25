@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { useWorkspace } from '@/stores';
 import { useFileSystem, useAppPersistence } from '@/hooks';
-import { FileTree, EditorTabs, EditorPane } from '@/components';
+import { FileTree, EditorTabs, EditorPane, SpreadsheetViewer, WebAppsPanel } from '@/components';
 import { ChatPanel } from '@/components/ChatPanel';
 import { TerminalPanel } from '@/components/TerminalPanel';
 import { SettingsModal } from '@/components/SettingsModal';
@@ -120,6 +120,15 @@ export default function App() {
   // Get active tab's saved cursor/scroll for restoration
   const activeTab = state.openTabs.find((t) => t.filePath === state.activeTab);
 
+  // Check if active file is binary spreadsheet (content is base64)
+  const isBinarySpreadsheet = state.activeTab ? /\.(xlsx?|xls)$/i.test(state.activeTab) : false;
+
+  const handleSpreadsheetDataLoaded = useCallback((data: import('@/types').SpreadsheetData) => {
+    if (state.activeTab) {
+      dispatch({ type: 'SET_SPREADSHEET_DATA', filePath: state.activeTab, data });
+    }
+  }, [state.activeTab, dispatch]);
+
   return (
     <div className={`app-layout${chatOpen ? ' app-layout--chat' : ''}`}>
       {/* Left sidebar */}
@@ -183,6 +192,7 @@ export default function App() {
             activeFilePath={state.activeTab}
           />
         </div>
+        <WebAppsPanel workspaceRoot={state.root?.path || ''} />
       </aside>
 
       {/* Main area */}
@@ -195,16 +205,25 @@ export default function App() {
         />
         <div className="editor-area">
           {state.activeTab ? (
-            <EditorPane
-              value={activeFileContent}
-              language={activeLanguage}
-              filePath={state.activeTab}
-              onChange={handleEditorChange}
-              onCursorChange={handleCursorChange}
-              onScrollChange={handleScrollChange}
-              savedCursor={activeTab?.cursor}
-              savedScroll={activeTab?.scroll}
-            />
+            (activeTab?.viewMode === 'spreadsheet' || /\.(csv|tsv|xlsx?|xls)$/i.test(state.activeTab)) ? (
+              <SpreadsheetViewer
+                filePath={state.activeTab}
+                content={activeFileContent}
+                binaryData={isBinarySpreadsheet ? activeFileContent : null}
+                onDataLoaded={handleSpreadsheetDataLoaded}
+              />
+            ) : (
+              <EditorPane
+                value={activeFileContent}
+                language={activeLanguage}
+                filePath={state.activeTab}
+                onChange={handleEditorChange}
+                onCursorChange={handleCursorChange}
+                onScrollChange={handleScrollChange}
+                savedCursor={activeTab?.cursor}
+                savedScroll={activeTab?.scroll}
+              />
+            )
           ) : (
             <div className="welcome-screen">
               <h2>Cammander</h2>

@@ -71,9 +71,8 @@ export function TerminalPanel({ onClose }: TerminalPanelProps) {
     xtermRef.current = xterm;
     fitAddonRef.current = fitAddon;
 
-    // Connect to backend WebSocket
-    const socket = io(WS_URL, {
-      path: '/terminal',
+    // Connect to backend WebSocket namespace
+    const socket = io(`${WS_URL}/terminal`, {
       transports: ['polling', 'websocket'],
       reconnection: true,
       reconnectionDelay: 1000,

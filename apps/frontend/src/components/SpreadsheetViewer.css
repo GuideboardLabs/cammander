@@ -1,0 +1,195 @@
+/* ── Spreadsheet Viewer ── */
+
+.spreadsheet-viewer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-primary, #1a1a2e);
+  color: var(--text-primary, #e0e0e0);
+  overflow: hidden;
+}
+
+.spreadsheet-viewer--loading,
+.spreadsheet-viewer--error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.spreadsheet-loading {
+  color: var(--text-muted, #888);
+  font-size: 0.9rem;
+}
+
+.spreadsheet-error {
+  color: #ef4444;
+  font-size: 0.9rem;
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 6px;
+}
+
+/* ── Sheet tabs ── */
+
+.spreadsheet-tabs {
+  display: flex;
+  background: var(--bg-tertiary, #12122a);
+  border-bottom: 1px solid var(--border-color, #2a2a4a);
+  padding: 0 4px;
+  gap: 2px;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.spreadsheet-tab {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  background: transparent;
+  color: var(--text-muted, #888);
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.spreadsheet-tab:hover {
+  color: var(--text-primary, #e0e0e0);
+}
+
+.spreadsheet-tab--active {
+  color: var(--accent, #14b8a6);
+  border-bottom-color: var(--accent, #14b8a6);
+  font-weight: 600;
+}
+
+/* ── Table wrapper ── */
+
+.spreadsheet-table-wrapper {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+/* ── Table ── */
+
+.spreadsheet-table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+  font-size: 0.82rem;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.spreadsheet-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.spreadsheet-table th,
+.spreadsheet-table td {
+  padding: 3px 10px;
+  border: 1px solid var(--border-color, #2a2a4a);
+  text-align: left;
+  white-space: nowrap;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spreadsheet-row-header {
+  background: var(--bg-tertiary, #12122a) !important;
+  color: var(--text-muted, #666);
+  font-size: 0.72rem;
+  text-align: center !important;
+  padding: 3px 8px !important;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 40px;
+}
+
+.spreadsheet-col-header {
+  background: var(--bg-secondary, #16213e);
+  color: var(--accent, #14b8a6);
+  font-weight: 600;
+  font-size: 0.78rem;
+  border-bottom: 2px solid var(--accent, #14b8a6) !important;
+}
+
+.spreadsheet-cell {
+  background: var(--bg-primary, #1a1a2e);
+  color: var(--text-primary, #e0e0e0);
+}
+
+.spreadsheet-row--alt .spreadsheet-cell {
+  background: var(--bg-secondary, #16213e);
+}
+
+.spreadsheet-row--alt .spreadsheet-row-header {
+  background: var(--bg-tertiary, #12122a) !important;
+}
+
+/* ── Number cells: right-align ── */
+.spreadsheet-cell:has(+ :not(.spreadsheet-cell)),
+td.spreadsheet-cell {
+  /* all cells default left */
+}
+
+/* ── Truncation notice ── */
+
+.spreadsheet-truncated {
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  color: var(--text-muted, #888);
+  text-align: center;
+  background: var(--bg-tertiary, #12122a);
+  border-top: 1px solid var(--border-color, #2a2a4a);
+  position: sticky;
+  bottom: 0;
+}
+
+/* ── Light mode overrides ── */
+
+@media (prefers-color-scheme: light) {
+  .spreadsheet-viewer {
+    background: var(--bg-primary, #ffffff);
+    color: var(--text-primary, #1a1a1a);
+  }
+
+  .spreadsheet-tabs {
+    background: var(--bg-tertiary, #f0f0f0);
+    border-bottom-color: var(--border-color, #ddd);
+  }
+
+  .spreadsheet-col-header {
+    background: var(--bg-secondary, #f5f5f5);
+  }
+
+  .spreadsheet-cell {
+    background: var(--bg-primary, #ffffff);
+    color: var(--text-primary, #1a1a1a);
+    border-color: var(--border-color, #ddd);
+  }
+
+  .spreadsheet-row--alt .spreadsheet-cell {
+    background: var(--bg-secondary, #f5f5f5);
+  }
+
+  .spreadsheet-row-header {
+    background: var(--bg-tertiary, #f0f0f0) !important;
+  }
+
+  .spreadsheet-row--alt .spreadsheet-row-header {
+    background: var(--bg-tertiary, #f0f0f0) !important;
+  }
+
+  .spreadsheet-table th,
+  .spreadsheet-table td {
+    border-color: var(--border-color, #ddd);
+  }
+}

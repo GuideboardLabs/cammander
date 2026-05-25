@@ -3,22 +3,42 @@ node_modules/
 
 # Build output
 dist/
-apps/*/dist/
+apps/backend/dist/
+apps/frontend/dist/
 
-# Runtime data
-data/sessions.json
-data/settings.json
-apps/*/data/
+# Runtime data (contains per-instance state, session data, settings with API keys)
+data/
+
+# Hermes agent data
+.hermes/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
 
 # IDE
 .idea/
 .vscode/
 *.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Environment
-.env
-.env.local
+# Logs
+*.log
+npm-debug.log*
+
+# Archives
+*.zip.gz
+*.tar.gz
+
+# Temporary / scratch files
+*-fixed.css
+*-fixed.*
+.archive/
+
+# TypeScript incremental builds
+*.tsbuildinfo

@@ -29,15 +29,19 @@ export function useFileSystem() {
 
       const files = new Map<string, string>();
       const extensionsToSkip = new Set([
-        '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.webp', '.svg',
+        '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.webp',
         '.woff', '.woff2', '.ttf', '.eot',
         '.zip', '.gz', '.tar', '.rar',
         '.mp3', '.mp4', '.wav', '.avi', '.mov',
-        '.pdf', '.exe', '.dll', '.so', '.dylib',
+        '.exe', '.dll', '.so', '.dylib',
         '.lock', '.pnp.js', '.pnp.cjs',
       ]);
 
+      // Binary files that need special handling (not skipped but read differently)
+      const binaryExts = new Set(['.xls', '.xlsx']);
+
       const maxFileSize = 512 * 1024; // 512 KB — skip huge files
+      const maxBinarySize = 20 * 1024 * 1024; // 20 MB for spreadsheets
 
       async function readDirectory(handle: FileSystemDirectoryHandle & { entries(): AsyncIterableIterator<[string, FileSystemHandle]> }, path: string): Promise<FileNode> {
         const children: FileNode[] = [];
@@ -58,6 +62,29 @@ export function useFileSystem() {
             if (extensionsToSkip.has(ext)) continue;
 
             const file = await (entry as FileSystemFileHandle).getFile();
+
+            if (binaryExts.has(ext)) {
+              // Binary spreadsheet — read as ArrayBuffer and store as base64
+              if (file.size > maxBinarySize) continue;
+              const arrayBuf = await file.arrayBuffer();
+              const bytes = new Uint8Array(arrayBuf);
+              let binary = '';
+              for (const byte of bytes) {
+                binary += String.fromCharCode(byte);
+              }
+              const dataUri = btoa(binary);
+              files.set(entryPath, dataUri);
+
+              children.push({
+                name,
+                path: entryPath,
+                type: 'file',
+                size: file.size,
+                mtime: file.lastModified ? new Date(file.lastModified) : undefined,
+              });
+              continue;
+            }
+
             if (file.size > maxFileSize) continue;
 
             const content = await file.text();
