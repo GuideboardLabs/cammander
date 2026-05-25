@@ -1,7 +1,7 @@
 # cammander
 
 <p align="center">
-  <img src="assets/logo-128.png?raw=true" width="80" alt="cammander logo" />
+  <img src="https://raw.githubusercontent.com/GuideboardLabs/cammander/main/assets/logo-128.png" width="80" alt="cammander logo" />
 </p>
 
 <p align="center">
