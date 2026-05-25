@@ -1283,6 +1283,30 @@ input, textarea { font-family: inherit; }
   padding: 0 6px;
 }
 
+/* ── Mobile keyboard: terminal floats above keyboard ─── */
+@media (max-width: 768px) {
+  .terminal-panel--keyboard-overlay {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 45vh !important;
+    z-index: 100 !important;
+    border-top: 1px solid var(--border-passive);
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.5);
+  }
+  .terminal-panel--keyboard-overlay .terminal-body {
+    flex: 1;
+  }
+  /* Push content up so it doesn't get hidden behind fixed terminal */
+  body.terminal-keyboard-open #view-stack {
+    padding-bottom: 45vh;
+  }
+  body.terminal-keyboard-open .statusbar {
+    display: none;
+  }
+}
+
 /* Remove old fake terminal styles — no longer used */
 
 /* ── Chat Panel (right sidebar) ───────────────────────── */
@@ -4257,6 +4281,62 @@ function initTerminal() {
     }
   });
   resizeObserver.observe(container);
+
+  // ── Mobile keyboard detection ───────────────────────────
+  // When the soft keyboard opens, the visual viewport shrinks.
+  // If the terminal is expanded, we pin it to the top of the
+  // remaining viewport so the input area stays visible.
+  if ('visualViewport' in window) {
+    let keyboardHeight = 0;
+    const panel = document.getElementById('terminal-panel');
+    const body = document.body;
+
+    window.visualViewport.addEventListener('resize', () => {
+      if (!panel) return;
+      const vv = window.visualViewport;
+      const h = window.innerHeight;
+      keyboardHeight = h - vv.height;
+
+      // Only react when panel is expanded (not collapsed/maximized)
+      const isExpanded = panel.classList.contains('terminal-panel--expanded');
+      if (isExpanded && keyboardHeight > 150) {
+        // Keyboard is open — float terminal above it
+        panel.classList.add('terminal-panel--keyboard-overlay');
+        body.classList.add('terminal-keyboard-open');
+        panel.style.bottom = `${keyboardHeight}px`;
+        // Refit to new height
+        panel.style.height = `${vv.height * 0.45}px`;
+        requestAnimationFrame(() => {
+          if (termFitAddon) termFitAddon.fit();
+        });
+      }
+      else {
+        // Keyboard closed — remove overlay
+        panel.classList.remove('terminal-panel--keyboard-overlay');
+        body.classList.remove('terminal-keyboard-open');
+        panel.style.bottom = '';
+        panel.style.height = '';
+        requestAnimationFrame(() => {
+          if (termFitAddon) termFitAddon.fit();
+        });
+      }
+    });
+
+    // Also scroll input into view when data is typed
+    xtermInstance.onData(() => {
+      if (keyboardHeight > 150) {
+        // Brief pause to let the keyboard settle
+        setTimeout(() => {
+          const screenElement = container.querySelector('.xterm-screen');
+          if (screenElement) {
+            screenElement.scrollIntoView({ block: 'end', behavior: 'smooth' });
+          }
+          // Ensure cursor is visible
+          xtermInstance.scrollToBottom?.();
+        }, 50);
+      }
+    });
+  }
 }
 
 function renderTerminal() {
