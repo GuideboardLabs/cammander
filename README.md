@@ -1,25 +1,17 @@
 # cammander
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/GuideboardLabs/cammander/main/assets/logo-128.png" width="80" alt="cammander logo" />
-</p>
-
-<p align="center">
-  <strong>AI-powered workspace harness for your projects.</strong><br>
-  Command center: terminal, streaming LLM chat, and code editor — in the browser.
+  <img src="https://raw.githubusercontent.com/GuideboardLabs/cammander/main/assets/logo-128.png" width="80" alt="cammander" />
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-0.1.0-teal?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License" />
-  <img src="https://img.shields.io/badge/node->=20-green?style=flat-square&logo=node.js" alt="Node.js" />
-  <br>
+  <img src="https://img.shields.io/badge/node-%3E%3D%2020-green?style=flat-square&logo=node.js" alt="Node.js" />
   <img src="https://img.shields.io/badge/NestJS-11-red?style=flat-square&logo=nestjs&logoColor=red" alt="NestJS" />
   <img src="https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-5.6-blue?style=flat-square&logo=typescript" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Vite-6-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
-  <img src="https://img.shields.io/badge/Ollama-Cloud-blue?style=flat-square" alt="Ollama" />
-  <br>
   <img src="https://img.shields.io/badge/xterm.js-5.5-black?style=flat-square" alt="xterm.js" />
   <img src="https://img.shields.io/badge/Socket.IO-4.8-gray?style=flat-square" alt="Socket.IO" />
   <img src="https://img.shields.io/badge/Monaco%20Editor-latest-blue?style=flat-square" alt="Monaco" />
@@ -27,159 +19,128 @@
 
 ---
 
-**cammander** (named with love) is a browser-based AI coding harness. Pairing a local workspace file tree with a real PTY terminal, streaming LLM chat with tool-calling, and an always-dark code editor, it brings Claude Code-like power to your own server.
-
-- Run your tools locally via **bash, read, write, grep, list** through a multi-turn agent loop
-- Browse and switch projects from a live file tree sidebar
-- Chat with models via **Ollama Cloud** (or bring your own provider)
-- Never lose context: auto-loads `HQ.md` / `AGENTS.md` / `CLAUDE.md` from your workspace root as the system prompt
-- Designed for desktop and mobile — warm flat design, teal accent, always-dark editor
-
-## What It Looks Like
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  [logo]  cammander                              ⚙  ×  │
-├──┬──────────────────────────────────────────────────────┤
-│  │  ┌──────────────────┬───────────────────────────────┐│
-│ 📁│  │ Chat with AI     │  code.js [x]  README.md [x] ││
-│ 📂│  │ ──────────────── │ ┌────────────────────────────┐│
-│ 📄│  │ User: fix this   │ │ function add(a, b) {     ││
-│ 📊│  │                  │ │   return a + b;            ││
-│ 📂│  │ [Tool: bash] $   │ │ }                        ││
-│  │  │ git diff ...     │ │                          ││
-│  │  │ ──────────────── │ └────────────────────────────┘│
-│  │  │                  │  $ ls -la                    │
-│  │  │                  │  .  ..  src  package.json    │
-│──┴──┴──────────────────┴──────────────────────────────┤
-│  >                                                    │
-└─────────────────────────────────────────────────────────┘
-```
-
-## Features
-
-| Feature | Details |
-|---------|---------|
-| **Real PTY Terminal** | xterm.js + node-pty + Socket.IO. Full Bash/zsh, not a simulation. Catppuccin theme included. |
-| **Streaming LLM Chat** | SSE-based with multi-turn tool-calling loop — bash, read, write, grep, list. |
-| **Code Editor** | Syntax highlighting, multi-tab, persistent file state. **Always dark** even in light mode. |
-| **Syntax Highlighting** | TSX, Python, Rust, Go, Shell, YAML, TOML, CSV, Markdown, SQL, JSON, Dockerfile, dotenv. |
-| **Workspace Picker** | Browse and switch projects from the sidebar. Auto-detects project roots. |
-| **Web Apps Panel** | Auto-detects local dev servers; open `cammander.json` for explicit app links. |
-| **Project Soul** | Auto-loads `HQ.md` / `AGENTS.md` / `CLAUDE.md` from workspace root as system prompt. |
-| **Dark/Light/System** | Warm flat design with teal accents. No gradients, no noise, no dotted borders. |
-| **Mobile-First** | Adaptive layout, touch-friendly grids, viewport-aware terminal. |
-| **Settings Panel** | Provider/model/config UI backed by `data/settings.json`. |
-| **Spreadsheet Viewer** | Inline `.csv`, `.xlsx`, `.xls` rendering with sortable columns. |
+Browser-based AI coding harness with real PTY terminal, streaming LLM chat with native tool-calling, and persistent code editor. NestJS backend. Socket.IO transport. Ollama Cloud support.
 
 ## Architecture
 
 ```
-Browser (port 3001)
-  |
-  proxy.js  ── static files + WebSocket upgrade + /api proxy
-  |
-  Backend (port 3002)
-  ├── /api/chat          ── streaming chat + tool loop
-  ├── /api/files         ── read / write / list / delete
-  ├── /api/sessions      ── chat session CRUD
-  ├── /api/settings      ── provider + model config
-  ├── /api/project       ── workspace + web-apps discovery
-  ├── /api/git           ── status / branch / log
-  ├── /api/model-gateway ── route to Ollama / OpenAI / local
-  └── WS /terminal       ── real PTY via node-pty
+┌──────────────────────────────────────────────────────────────┐
+│                         Browser                               │
+│  ┌────────────────────────────────────────────────────────┐   │
+│  │  prototype.html (primary)  │  React + Vite (secondary) │   │
+│  │  Single-file HTML/CSS/JS    │  NestJS module federation  │   │
+│  └────────────────────┬───────────────────────────────────┘   │
+└───────────────────────┼───────────────────────────────────────┘
+                        │ proxy.js (port 3001)
+                        │ HTTP static + WebSocket upgrade + /api proxy
+                        ▼
+┌──────────────────────────────────────────────────────────────┐
+│                      Backend (port 3002)                      │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌──────────────┐   │
+│  │ Chat Controller │ │ TerminalGateway │ │ Files API    │   │
+│  │ └─ SSE stream   │ │ └─ Socket.IO WS │ │ └─ CRUD      │   │
+│  │ └─ Tool loop    │ │ └─ node-pty     │ │              │   │
+│  └─────────────────┘ └─────────────────┘ └──────────────┘   │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌──────────────┐   │
+│  │ Session Store   │ │ Settings API    │ │ Model Gateway│   │
+│  │ └─ In-memory    │ │ └─ Provider cfg │ │ └─ Routing   │   │
+│  └─────────────────┘ └─────────────────┘ └──────────────┘   │
+│  ┌─────────────────┐ ┌─────────────────┐                    │
+│  │ Git Controller  │ │ Project API     │                    │
+│  │ └─ Status/branch│ │ └─ Discovery    │                    │
+│  └─────────────────┘ └─────────────────┘                    │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-## Quick Start
+## Components
 
-The fastest path from zero to running:
+### Frontend
 
-```bash
-git clone https://github.com/GuideboardLabs/cammander.git
-cd cammander
-npm install
-cd apps/backend && npm install && cd ../..
+- **Primary**: `prototype.html` — self-contained HTML/CSS/JS application
+  - File tree sidebar (`FileTree.tsx` API-compatible)
+  - Slide-in editor with syntax highlighting (TSX, Python, Rust, Go, Shell, YAML, TOML, CSV, Markdown, SQL, JSON, Dockerfile, dotenv)
+  - Collapsible terminal panel (240px expanded, 34px collapsed, 100% maximized)
+  - Streaming chat panel with tool-call cards
+  - Web apps auto-discovery panel
+  - Spreadsheet viewer (CSV/XLSX)
+  - Settings panel (provider/model configuration)
+  - Always-dark editor regardless of theme mode
 
-# One-time build
-npm run build:shared && npm run build:backend
+- **Secondary**: React 19 + Vite application in `apps/frontend/`
+  - Not actively maintained; `prototype.html` is the reference implementation
 
-# Start
-cd apps/backend && PORT=3002 node dist/main.js &
-cd ../.. && node proxy.js &
+### Backend
 
-open http://localhost:3001
-```
+NestJS monolith at `apps/backend/src/`. Module structure:
 
-📖 For detailed installation, troubleshooting, and deployment, see **[INSTALL.md](./INSTALL.md)**.
+| Module | Endpoint | Function |
+|--------|----------|---------|
+| `chat` | `POST /api/chat` | SSE streaming, multi-turn tool loop |
+| `terminal` | `WS /terminal` | node-pty over Socket.IO (namespace `/terminal`) |
+| `tools` | Internal | `bash`, `read_file`, `write_file`, `grep`, `list_files` |
+| `sessions` | `GET/POST/DELETE /api/sessions` | Chat session CRUD |
+| `settings` | `GET/PUT /api/settings` | Provider/model configuration |
+| `files` | `GET/POST/PUT/DELETE /api/files` | Workspace file operations |
+| `git` | `GET /api/git/*` | Status, branch, log |
+| `project` | `GET /api/project/apps` | Web app discovery |
+| `model-gateway` | `POST /api/model-gateway/*` | LLM API routing |
+| `model-routing` | Internal | Model selection logic |
+| `searxng-search` | Internal | SearXNG integration |
+| `filesystem` | Internal | FS abstractions |
+| `tool-registry` | Internal | Tool schema and discovery |
+| `agent-orchestrator` | Internal | Agent coordination |
+| `cloak-browser` | Internal | Headless browser automation (Puppeteer) |
 
-## Tech Stack
+### Proxy
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | Vanilla HTML/CSS/JS prototype (`prototype.html`), React 19 + Vite (secondary) |
-| **Backend** | NestJS 11, Express, Socket.IO 4.8 |
-| **Terminal** | node-pty (real PTY), xterm.js 5.5, Catppuccin theme |
-| **AI / Models** | Ollama Cloud API (default), OpenAI-compatible local route |
-| **Editor** | Monaco Editor (via `@monaco-editor/react`) |
-| **Build** | TypeScript 5.6, Vite 6 |
-| **Testing** | Vitest, React Testing Library, Jest |
-| **Proxy** | Node `http-proxy` for static + WS + API gateway |
+`proxy.js` — Node.js HTTP server on port 3001:
+- Static file serving for `prototype.html`, CSS, assets
+- WebSocket upgrade to backend port 3002 (`/terminal` namespace)
+- HTTP proxy for `/api/*` routes to port 3002
+- CORS preflight handling
 
-## Project Structure
+## Data Flow
 
-```
-cammander/
-├── prototype.html               ← Primary frontend (single file, warm flat design)
-├── proxy.js                     ← HTTP + WebSocket proxy (port 3001 → 3002)
-├── new-features.css             ← Incremental UI patches (copy buttons, tool cards, etc.)
-├── HQ.md                        ← Project soul — loaded as system prompt
-├── manifest.json                ← PWA manifest
-├── package.json                 ← Root workspace config (npm workspaces)
-├── apps/
-│   ├── backend/                 ← NestJS server
-│   │   ├── src/
-│   │   │   ├── main.ts
-│   │   │   ├── app.module.ts
-│   │   │   ├── modules/
-│   │   │   │   ├── chat/              → Streaming chat + tool-call loop
-│   │   │   │   ├── terminal/          → PTY WebSocket gateway (node-pty)
-│   │   │   │   ├── tools/             → bash, read_file, write_file, grep, list_files
-│   │   │   │   ├── sessions/          → Chat session store
-│   │   │   │   ├── settings/          → Provider/model configuration
-│   │   │   │   ├── files/             → File CRUD operations
-│   │   │   │   ├── git/               → Git metadata endpoints
-│   │   │   │   ├── project/           → Workspace + web-apps discovery
-│   │   │   │   ├── model-gateway/     → LLM API routing
-│   │   │   │   ├── filesystem/        → FS abstractions
-│   │   │   │   ├── model-routing/     → Model selection logic
-│   │   │   │   ├── searxng-search/    → Web search via SearXNG
-│   │   │   │   ├── tool-registry/     → Tool discovery & schema
-│   │   │   │   ├── agent-orchestrator/→ Agent coordination
-│   │   │   │   └── cloak-browser/     → Headless browser automation
-│   │   │   └── gateway/
-│   │   └── dist/                ← Built output
-│   └── frontend/                ← React + Vite app (secondary build)
-│       ├── src/
-│       │   └── components/
-│       │       ├── FileTree.tsx
-│       │       ├── EditorTabs.tsx
-│       │       ├── EditorPane.tsx
-│       │       ├── WebAppsPanel.tsx
-│       │       └── SpreadsheetViewer.tsx
-│       └── vite.config.ts
-├── shared/                      ← Shared TypeScript configs (tsconfig.json)
-└── assets/                      ← Icons, logos, manifest images
-    ├── logo-32.png
-    ├── logo-64.png
-    ├── logo-128.png
-    ├── apple-touch-icon.png
-    ├── icon-192.png
-    └── icon-512.png
-```
+1. User types in terminal → xterm.js `onData` → Socket.IO `terminal:input` → node-pty → shell process → PTY output → Socket.IO `terminal:data` → xterm.js write
+2. User sends chat message → `POST /api/chat` (SSE) → LLM API → Server-Sent Events response → tool call parsed → tool executed → result appended → loop until completion
+3. File open → `GET /api/files?path=` → file content → rendered in editor with syntax highlighting
+4. Tool execution (from chat) → `tools.service.ts` → `list_files`, `read_file`, `write_file`, `grep`, `bash` → result serialized to SSE stream
 
-## Provider Configuration
+## Environment
 
-cammander ships with a **Model Gateway** that routes requests to your chosen provider. Supported providers: `ollama-cloud`, `ollama-local`, `openai-compat`. Via the settings panel (gear icon) or `data/settings.json`:
+### Requirements
+
+- Node.js >= 20
+- npm >= 10
+- Unix shell (Bash or Zsh) for PTY terminal
+- OS: macOS, Linux, Windows (WSL2)
+
+### Dependencies (Backend)
+
+- `@nestjs/common` / `@nestjs/core` / `@nestjs/platform-express` ^11.0.0
+- `@nestjs/platform-socket.io` / `@nestjs/websockets` ^11.0.0
+- `@nestjs/config` ^4.0.0
+- `socket.io` ^4.8.0
+- `node-pty` ^1.0.0
+- `simple-git` ^3.27.0
+- `puppeteer` ^24.0.0 + plugins
+- `uuid` ^11.0.0
+- `axios` ^1.7.0
+- `ws` ^8.18.0
+
+### Dependencies (Frontend)
+
+- `react` ^19.1.0 / `react-dom` ^19.1.0
+- `@xterm/xterm` ^6.0.0 + `@xterm/addon-fit` ^0.11.0 + `@xterm/addon-web-links` ^0.12.0
+- `socket.io-client` ^4.8.3
+- `@monaco-editor/react` ^4.7.0
+- `xlsx` ^0.18.5
+
+## Configuration
+
+### Provider Settings
+
+Stored in `data/settings.json`:
 
 ```json
 {
@@ -192,14 +153,197 @@ cammander ships with a **Model Gateway** that routes requests to your chosen pro
 }
 ```
 
-> ⚠️ Use `https://ollama.com/v1` — `https://api.ollama.com` redirects and drops the `Authorization` header.
+Ollama Cloud endpoint must use `https://ollama.com/v1`. `https://api.ollama.com` returns a 301 redirect that drops the `Authorization` header.
 
-## Requirements
+### Environment Variables
 
-- **Node.js** `>= 20`
-- **OS:** macOS, Linux, Windows (WSL)
-- **PTY:** Unix-like systems recommended (node-pty uses native `pty`).
+Optional `.env` in `apps/backend/`:
+
+```
+PORT=3002
+FRONTEND_PORT=3001
+OLLAMA_CLOUD_API_KEY=sk-...
+OLLAMA_CLOUD_BASE_URL=https://ollama.com/v1
+OLLAMA_CLOUD_DEFAULT_MODEL=deepseek-v4-flash
+DEFAULT_WORKSPACE=/home/user/projects
+```
+
+### Project Soul (System Prompt)
+
+cammander auto-discovers and loads system prompts from the workspace root, in priority order:
+
+1. `HQ.md`
+2. `AGENTS.md`
+3. `CLAUDE.md`
+
+Loaded by `chat.controller.ts` and prepended to the LLM conversation context.
+
+## Build
+
+```bash
+# Root dependencies
+npm install
+
+# Backend
+cd apps/backend && npm install
+npx nest build
+
+# Proxy (root)
+cd ../..
+node proxy.js &
+```
+
+## Run
+
+```bash
+# Terminal 1: Backend
+cd apps/backend && PORT=3002 node dist/main.js
+
+# Terminal 2: Proxy
+cd /path/to/cammander
+node proxy.js
+
+# Access
+open http://localhost:3001
+```
+
+Alternative: `node proxy.js` in background, then `PORT=3002 node apps/backend/dist/main.js`.
+
+## Project Structure
+
+```
+cammander/
+├── prototype.html              Primary frontend
+├── proxy.js                    HTTP + WS proxy (port 3001 → 3002)
+├── new-features.css            Incremental UI patches
+├── HQ.md                       Project system prompt
+├── manifest.json               PWA manifest
+├── package.json                Root workspace (npm workspaces)
+├── apps/
+│   ├── backend/
+│   │   ├── src/
+│   │   │   ├── main.ts
+│   │   │   ├── app.module.ts
+│   │   │   ├── modules/
+│   │   │   │   ├── chat/
+│   │   │   │   ├── terminal/
+│   │   │   │   ├── tools/
+│   │   │   │   ├── sessions/
+│   │   │   │   ├── settings/
+│   │   │   │   ├── files/
+│   │   │   │   ├── git/
+│   │   │   │   ├── project/
+│   │   │   │   ├── model-gateway/
+│   │   │   │   ├── model-routing/
+│   │   │   │   ├── searxng-search/
+│   │   │   │   ├── filesystem/
+│   │   │   │   ├── tool-registry/
+│   │   │   │   ├── agent-orchestrator/
+│   │   │   │   └── cloak-browser/
+│   │   │   └── gateway/
+│   │   └── dist/               Compiled output
+│   └── frontend/
+│       ├── src/
+│       │   └── components/
+│       │       ├── FileTree.tsx
+│       │       ├── EditorTabs.tsx
+│       │       ├── EditorPane.tsx
+│       │       ├── WebAppsPanel.tsx
+│       │       └── SpreadsheetViewer.tsx
+│       └── vite.config.ts
+├── shared/
+│   └── tsconfig.json
+└── assets/
+    ├── logo-32.png
+    ├── logo-64.png
+    ├── logo-128.png
+    ├── apple-touch-icon.png
+    ├── icon-192.png
+    └── icon-512.png
+```
+
+## API Endpoints
+
+### Chat
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/chat` | SSE stream, accepts `{ message, sessionId?, stream? }` |
+
+### Sessions
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/sessions` | List all sessions |
+| POST | `/api/sessions` | Create session `{ title }` |
+| DELETE | `/api/sessions/:id` | Delete session |
+
+### Files
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/files?path=` | Read file |
+| POST | `/api/files` | Create `{ path, content }` |
+| PUT | `/api/files` | Update `{ path, content }` |
+| DELETE | `/api/files?path=` | Delete |
+
+### Settings
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/settings` | Read settings |
+| PUT | `/api/settings` | Update settings |
+
+### Git
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/git/status` | Working tree status |
+| GET | `/api/git/branch` | Current branch |
+| GET | `/api/git/log` | Recent commits |
+
+### Project
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/project/apps` | Auto-detected + configured web apps |
+
+## Terminal WebSocket Events
+
+Namespace: `/terminal`
+
+| Event | Direction | Payload | Description |
+|-------|-----------|---------|-------------|
+| `terminal:create` | Client → Server | `{ cwd?, cols?, rows? }` | Spawn PTY session |
+| `terminal:input` | Client → Server | `{ data: string }` | STDIN input |
+| `terminal:resize` | Client → Server | `{ cols, rows }` | Resize PTY |
+| `terminal:data` | Server → Client | `{ data: string }` | STDOUT/STDERR output |
+| `terminal:exit` | Server → Client | `{ exitCode: number }` | Process exit |
+
+## Mobile Keyboard Behavior
+
+`prototype.html` includes visual viewport detection (`window.visualViewport`) for mobile soft keyboards. When the keyboard opens while terminal is expanded:
+
+1. Keyboard height calculated: `window.innerHeight - visualViewport.height`
+2. Terminal panel receives `terminal-panel--keyboard-overlay` class
+3. Panel fixed to `bottom: ${keyboardHeight}px` with `height: 45vh`
+4. `xtermInstance.scrollToBottom()` called on every keystroke
+5. Panel exits overlay mode when keyboard closes
+
+## Web Apps Discovery
+
+Auto-detection: scans workspace for processes on ports 3000, 5173, 8080, etc.
+
+Explicit: `cammander.json` in workspace root:
+
+```json
+{
+  "webApps": [
+    { "name": "Frontend", "url": "http://localhost:5173", "description": "Vite dev" }
+  ]
+}
+```
 
 ## License
 
-[MIT](./LICENSE) — © 2026 Guideboard Labs
+[MIT](./LICENSE) — Copyright (c) 2026 Guideboard Labs
