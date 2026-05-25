@@ -1,6 +1,6 @@
 {
   "name": "cammander",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "A workspace-native AI coding harness. Claude Code for the Ollama ecosystem.",
   "workspaces": [
