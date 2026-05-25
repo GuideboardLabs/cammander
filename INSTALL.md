@@ -208,7 +208,7 @@ cammander auto-discovers these files in the workspace root and loads them as the
 |----------|------|---------|
 | 1st | `HQ.md` | Project soul, architecture, conventions |
 | 2nd | `AGENTS.md` | Agent role definitions |
-| 3rd | `CLAUDE.md` | Claude-specific instructions |
+| 3rd | `CLAUSE.md` | Clause-specific instructions |
 
 Create one in your project root to give the AI context about your codebase.
 

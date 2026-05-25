@@ -174,7 +174,7 @@ cammander auto-discovers and loads system prompts from the workspace root, in pr
 
 1. `HQ.md`
 2. `AGENTS.md`
-3. `CLAUDE.md`
+3. `CLAUSE.md`
 
 Loaded by `chat.controller.ts` and prepended to the LLM conversation context.
 

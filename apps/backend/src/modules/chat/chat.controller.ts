@@ -8,9 +8,9 @@ import { IsString, IsOptional } from 'class-validator';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
-// Load the project soul (HQ.md, CLAUDE.md, AGENTS.md, or soul.md) from workspace root.
+// Load the project soul (HQ.md, CLAUSE.md, AGENTS.md, or soul.md) from workspace root.
 // Returns the file contents or null if none found.
-const SOUL_FILES = ['HQ.md', 'CLAUDE.md', 'AGENTS.md', 'soul.md'];
+const SOUL_FILES = ['HQ.md', 'CLAUSE.md', 'AGENTS.md', 'soul.md'];
 
 function loadSoul(workspaceRoot: string): string | null {
   for (const name of SOUL_FILES) {
