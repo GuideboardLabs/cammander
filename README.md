@@ -1,7 +1,7 @@
 # cammander
 
 <p align="center">
-  <img src="assets/apple-touch-icon.png" width="120" alt="cammander logo" />
+  <img src="assets/logo-128.png?raw=true" width="80" alt="cammander logo" />
 </p>
 
 <p align="center">
