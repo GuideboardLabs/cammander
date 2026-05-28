@@ -1,9 +1,10 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import { useWorkspace } from '@/stores';
 import { useFileSystem, useAppPersistence } from '@/hooks';
 import { FileTree, EditorTabs, EditorPane, SpreadsheetViewer, WebAppsPanel } from '@/components';
 import { ChatPanel } from '@/components/ChatPanel';
 import { TerminalPanel } from '@/components/TerminalPanel';
+import { VaultPanel } from '@/components/VaultPanel';
 import { SettingsModal } from '@/components/SettingsModal';
 import { WorkspacePicker } from '@/components/WorkspacePicker';
 import { getLanguageFromPath } from '@/languages';
@@ -17,6 +18,22 @@ export default function App() {
   const [termOpen, setTermOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [activePanel, setActivePanel] = useState<'explorer' | 'vault'>('explorer');
+  const [isMobile, setIsMobile] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+
+  const handleSetPanel = useCallback((panel: 'explorer' | 'vault') => {
+    setActivePanel(panel);
+    if (isMobile) setSidebarVisible(true);
+  }, [isMobile]);
+
+  // Mobile detection
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   // Track cursor/scroll updates — debounced at the Monaco level
   const cursorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -38,7 +55,6 @@ export default function App() {
   }, [openDirectoryPicker, dispatch]);
 
   const handleWorkspaceSelect = useCallback(async (absPath: string) => {
-    // Load the directory listing from the backend
     try {
       const res = await fetch(`/api/files?path=${encodeURIComponent(absPath)}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -88,7 +104,6 @@ export default function App() {
     [state.activeTab, dispatch],
   );
 
-  // Monaco editor cursor position change — debounced
   const handleCursorChange = useCallback(
     (cursor: CursorPosition) => {
       if (!state.activeTab) return;
@@ -100,7 +115,6 @@ export default function App() {
     [state.activeTab, dispatch],
   );
 
-  // Monaco editor scroll position change — debounced
   const handleScrollChange = useCallback(
     (scroll: ScrollPosition) => {
       if (!state.activeTab) return;
@@ -116,11 +130,7 @@ export default function App() {
 
   const activeFileContent = state.activeTab ? state.files.get(state.activeTab) ?? '' : '';
   const activeLanguage = state.activeTab ? getLanguageFromPath(state.activeTab) : 'plaintext';
-
-  // Get active tab's saved cursor/scroll for restoration
   const activeTab = state.openTabs.find((t) => t.filePath === state.activeTab);
-
-  // Check if active file is binary spreadsheet (content is base64)
   const isBinarySpreadsheet = state.activeTab ? /\.(xlsx?|xls)$/i.test(state.activeTab) : false;
 
   const handleSpreadsheetDataLoaded = useCallback((data: import('@/types').SpreadsheetData) => {
@@ -129,71 +139,103 @@ export default function App() {
     }
   }, [state.activeTab, dispatch]);
 
+  const sidebarContent = activePanel === 'explorer' ? (
+    <>
+      <div className="sidebar-panel-header">
+        <button className="sidebar-panel-explore-btn" onClick={handleOpenFolder} disabled={loading}>
+          {loading ? 'Opening…' : 'Open Folder'}
+        </button>
+        <button className="sidebar-icon-btn" onClick={() => setPickerOpen(true)} title="Browse workspaces">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        </button>
+      </div>
+      {fsError && <div className="sidebar-error">{fsError}</div>}
+      {quotaExceeded && (
+        <div className="sidebar-warning">
+          Storage almost full — some data may not be saved ({quotaExceeded})
+        </div>
+      )}
+      {concurrentTabDetected && (
+        <div className="sidebar-info">
+          Another tab is open — changes sync via last-write-wins
+        </div>
+      )}
+      <div className="sidebar-tree">
+        <FileTree root={state.root} onFileSelect={handleFileSelect} activeFilePath={state.activeTab} />
+      </div>
+      <WebAppsPanel workspaceRoot={state.root?.path || ''} />
+    </>
+  ) : (
+    isMobile ? null : <VaultPanel onClose={() => setActivePanel('explorer')} isMobile={isMobile} />
+  );
+
   return (
-    <div className={`app-layout${chatOpen ? ' app-layout--chat' : ''}`}>
+    <div className={`app-layout${chatOpen ? ' app-layout--chat' : ''}${activePanel === 'vault' ? ' app-layout--vault' : ''}`}>
+      {/* Mobile hamburger */}
+      {isMobile && (
+        <button className="mobile-hamburger" onClick={() => setSidebarVisible(!sidebarVisible)} title="Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      )}
+
+      {/* Sidebar overlay (mobile) */}
+      {isMobile && sidebarVisible && (
+        <div className="sidebar-overlay sidebar-overlay--visible" onClick={() => setSidebarVisible(false)} />
+      )}
+
       {/* Left sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <span className="sidebar-title">Explorer</span>
-          <div className="sidebar-actions">
-            <button
-              className={`sidebar-icon-btn${termOpen ? ' sidebar-icon-btn--active' : ''}`}
-              onClick={() => setTermOpen(!termOpen)}
-              title="Toggle terminal"
-            >
-              ⌘T
-            </button>
-            <button
-              className={`sidebar-icon-btn${chatOpen ? ' sidebar-icon-btn--active' : ''}`}
-              onClick={() => setChatOpen(!chatOpen)}
-              title="Toggle chat"
-            >
-              💬
-            </button>
-            <button
-              className="sidebar-icon-btn"
-              onClick={() => setSettingsOpen(true)}
-              title="Settings"
-            >
-              ⚙
-            </button>
-            <button
-              className="sidebar-icon-btn"
-              onClick={() => setPickerOpen(true)}
-              title="Open workspace"
-            >
-              📂
-            </button>
-            <button
-              className="open-folder-btn"
-              onClick={handleOpenFolder}
-              disabled={loading}
-              title="Open a folder to browse"
-            >
-              {loading ? 'Loading…' : 'Open Folder'}
-            </button>
-          </div>
+      <aside className={`sidebar${isMobile ? (sidebarVisible ? ' sidebar--visible' : '') : ''}`}>
+        <div className="sidebar-tabs">
+          <button
+            className={`sidebar-tab${activePanel === 'explorer' ? ' sidebar-tab--active' : ''}`}
+            onClick={() => handleSetPanel('explorer')}
+            title="Explorer"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span>Explorer</span>
+          </button>
+          <button
+            className={`sidebar-tab${activePanel === 'vault' ? ' sidebar-tab--active' : ''}`}
+            onClick={() => handleSetPanel('vault')}
+            title="Vault"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+            </svg>
+            <span>Vault</span>
+          </button>
         </div>
-        {fsError && <div className="sidebar-error">{fsError}</div>}
-        {quotaExceeded && (
-          <div className="sidebar-warning">
-            Storage almost full — some data may not be saved ({quotaExceeded})
-          </div>
-        )}
-        {concurrentTabDetected && (
-          <div className="sidebar-info">
-            Another tab is open — changes sync via last-write-wins
-          </div>
-        )}
-        <div className="sidebar-tree">
-          <FileTree
-            root={state.root}
-            onFileSelect={handleFileSelect}
-            activeFilePath={state.activeTab}
-          />
+        <div className="sidebar-content">
+          {sidebarContent}
         </div>
-        <WebAppsPanel workspaceRoot={state.root?.path || ''} />
+        {/* Bottom toolbar */}
+        <div className="sidebar-toolbar">
+          <button className={`sidebar-toolbar-btn${termOpen ? ' sidebar-toolbar-btn--active' : ''}`} onClick={() => setTermOpen(!termOpen)} title="Toggle terminal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+            </svg>
+          </button>
+          <button className={`sidebar-toolbar-btn${chatOpen ? ' sidebar-toolbar-btn--active' : ''}`} onClick={() => setChatOpen(!chatOpen)} title="Toggle chat">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            </svg>
+          </button>
+          <button className="sidebar-toolbar-btn" onClick={() => setSettingsOpen(true)} title="Settings">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.18A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.67 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.18A1.65 1.65 0 0 0 4.67 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.67a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.18a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.33 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.18a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </button>
+        </div>
       </aside>
+
+      {/* Mobile vault full-width overlay */}
+      {isMobile && activePanel === 'vault' && (
+        <VaultPanel onClose={() => setActivePanel('explorer')} isMobile={isMobile} panelMode="overlay" />
+      )}
 
       {/* Main area */}
       <main className="main-area">

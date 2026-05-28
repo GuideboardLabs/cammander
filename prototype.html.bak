@@ -283,14 +283,6 @@ input, textarea { font-family: inherit; }
   opacity: 0.75;
 }
 
-/* Open Folder button: label on desktop, icon on mobile */
-#btn-open .btn-label {
-  display: inline;
-}
-#btn-open .btn-icon {
-  display: none;
-}
-
 .topbar-btn--active {
   background: var(--accent);
   color: var(--bg-elevated);
@@ -1291,149 +1283,8 @@ input, textarea { font-family: inherit; }
   padding: 0 6px;
 }
 
-/* ── Terminal Tabs ────────────────────────────────────── */
-.terminal-tabs {
-  display: flex;
-  align-items: stretch;
-  flex: 1;
-  overflow-x: auto;
-  overflow-y: hidden;
-  gap: 0;
-  scrollbar-width: none;
-  height: 100%;
-}
-.terminal-tabs::-webkit-scrollbar { display: none; }
-
-.terminal-tab {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 10px;
-  font-size: 11px;
-  color: #666;
-  background: transparent;
-  border: none;
-  border-right: 1px solid rgba(255,255,255,0.06);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 120ms ease, color 120ms ease;
-  position: relative;
-  flex-shrink: 0;
-  height: 100%;
-}
-.terminal-tab:hover {
-  background: rgba(255,255,255,0.04);
-  color: #aaa;
-}
-.terminal-tab--active {
-  color: #ccc;
-  background: rgba(255,255,255,0.06);
-}
-.terminal-tab--active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--accent);
-}
-.terminal-tab-icon {
-  width: 12px;
-  height: 12px;
-  opacity: 0.5;
-  flex-shrink: 0;
-}
-.terminal-tab-label {
-  font-size: 11px;
-  line-height: 1;
-}
-.terminal-tab-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  border: none;
-  background: transparent;
-  color: #555;
-  font-size: 10px;
-  line-height: 1;
-  padding: 0;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
-}
-.terminal-tab:hover .terminal-tab-close {
-  opacity: 1;
-}
-.terminal-tab-close:hover {
-  background: rgba(255,80,80,0.2);
-  color: #f87171;
-}
-
-.terminal-tab-add {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 100%;
-  border: none;
-  background: transparent;
-  color: #555;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: color 120ms ease, background 120ms ease;
-}
-.terminal-tab-add:hover {
-  color: #14b8a6;
-  background: rgba(20,184,166,0.08);
-}
-
-.terminal-tab-container {
-  display: none;
-  flex: 1;
-  overflow: hidden;
-  height: 100%;
-}
-.terminal-tab-container--active {
-  display: block;
-}
-
 /* ── Mobile keyboard: terminal floats above keyboard ─── */
 @media (max-width: 768px) {
-  /* Hide tree view on mobile — it's a detailed view not suited for small screens */
-  #btn-toggle-tree {
-    display: none;
-  }
-  /* Use folder icon instead of "Open Folder" text on mobile */
-  #btn-open .btn-label {
-    display: none;
-  }
-  #btn-open .btn-icon {
-    display: flex;
-    width: 18px;
-    height: 18px;
-  }
-  /* Keep settings cog always visible */
-  .topbar-btn--settings {
-    flex-shrink: 0;
-  }
-  /* Tighter topbar on mobile */
-  .topbar {
-    padding: 0 8px;
-    gap: 4px;
-  }
-  .topbar-btn {
-    padding: 4px 6px;
-    font-size: 11px;
-  }
-  .topbar-logo img {
-    height: 20px;
-    width: 20px;
-  }
-
   .terminal-panel--keyboard-overlay {
     position: fixed !important;
     bottom: 0 !important;
@@ -1453,35 +1304,6 @@ input, textarea { font-family: inherit; }
   }
   body.terminal-keyboard-open .statusbar {
     display: none;
-  }
-
-  /* Chat panel: full width on mobile */
-  .main-split {
-    grid-template-columns: 1fr !important;
-    grid-template-rows: 1fr auto !important;
-  }
-  .main-split > .content-area {
-    grid-column: 1 / -1 !important;
-  }
-  .main-split > .chat-panel--expanded,
-  .main-split--chat > .chat-panel--expanded,
-  .main-split--dual > .chat-panel--expanded,
-  .main-split--vault-chat > .chat-panel--expanded {
-    grid-row: 1 !important;
-    grid-column: 1 / -1 !important;
-    width: 100% !important;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 50;
-    border-left: none;
-  }
-  .main-split > .terminal-panel--collapsed,
-  .main-split > .terminal-panel--expanded,
-  .main-split > .terminal-panel--hidden {
-    grid-column: 1 / -1 !important;
   }
 }
 
@@ -1504,59 +1326,28 @@ input, textarea { font-family: inherit; }
 
 .chat-header {
   display: flex;
-  flex-direction: column;
-  padding: 8px 12px 6px;
+  align-items: center;
+  height: 42px;
+  padding: 0 12px;
   border-bottom: 1px solid var(--border-passive);
   flex-shrink: 0;
-  gap: 4px;
-}
-
-.chat-header-tools {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  flex: 1;
-}
-
-#chat-close {
-  margin-left: auto;
 }
 
 .chat-header-title {
   font-size: 13px;
   font-weight: 600;
   color: var(--ink);
-  padding: 2px 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex: 1;
 }
 
-.chat-model-picker {
+.chat-model-badge {
   font-size: 10px;
-  padding: 2px 6px;
+  padding: 2px 8px;
   border-radius: var(--radius-pill);
   background: var(--ink-04);
   color: var(--ink-muted);
   font-weight: 500;
-  border: 1px solid var(--border-passive);
-  max-width: 200px;
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='8' height='5' viewBox='0 0 8 5' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%235f5f5d'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 6px center;
-  padding-right: 18px;
-}
-.chat-model-picker:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-.chat-model-picker option {
-  background: var(--bg-elevated);
-  color: var(--ink);
-  font-size: 12px;
 }
 
 .chat-messages {
@@ -1722,14 +1513,10 @@ input, textarea { font-family: inherit; }
   background: transparent;
   max-height: 100px;
   min-height: 40px;
-  white-space: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
 }
 
 .chat-textarea::placeholder {
   color: var(--ink-muted);
-  opacity: 0.5;
 }
 
 .chat-send-btn {
@@ -1863,61 +1650,13 @@ input, textarea { font-family: inherit; }
   border-color: var(--border-active);
 }
 
-/* ── Tool call group (collapsible container for all tools in one turn) ── */
-.chat-tool-group {
-  margin-top: 8px;
+/* ── Tool call blocks ──────────────────────────────────── */
+.chat-tool-call {
+  margin-top: 6px;
   border: 1px solid var(--border-passive);
   border-radius: var(--radius-md);
   overflow: hidden;
-}
-
-.chat-tool-group-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  background: var(--ink-03);
-  cursor: pointer;
-  user-select: none;
-  color: var(--ink-muted);
   font-size: 12px;
-  transition: background var(--dur) var(--ease);
-}
-
-.chat-tool-group-header:hover {
-  background: var(--ink-04);
-}
-
-.chat-tool-group-toggle {
-  font-size: 10px;
-  transition: transform var(--dur) var(--ease);
-}
-
-.chat-tool-group--expanded .chat-tool-group-toggle {
-  transform: rotate(90deg);
-}
-
-.chat-tool-group-body {
-  display: none;
-  border-top: 1px solid var(--border-passive);
-}
-
-.chat-tool-group--expanded .chat-tool-group-body {
-  display: block;
-}
-
-/* ── Tool call blocks ──────────────────────────────────── */
-.chat-tool-call {
-  margin-top: 0;
-  border: none;
-  border-bottom: 1px solid var(--border-passive);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  font-size: 12px;
-}
-
-.chat-tool-call:last-child {
-  border-bottom: none;
 }
 
 .chat-tool-call-header {
@@ -1930,11 +1669,6 @@ input, textarea { font-family: inherit; }
   user-select: none;
   color: var(--ink-muted);
   transition: background var(--dur) var(--ease);
-}
-
-.chat-tool-group .chat-tool-call-header {
-  background: transparent;
-  padding: 4px 10px;
 }
 
 .chat-tool-call-header:hover {
@@ -1983,13 +1717,6 @@ input, textarea { font-family: inherit; }
 
 .chat-tool-call--expanded .chat-tool-call-body {
   display: block;
-}
-
-.chat-tool-call--error .chat-tool-call-header {
-  border-color: #e74c3c;
-}
-.chat-tool-call--error .chat-tool-call-name {
-  color: #e74c3c;
 }
 
 .chat-msg-role-label {
@@ -2042,267 +1769,6 @@ input, textarea { font-family: inherit; }
   background: var(--ink-04);
   color: var(--ink);
 }
-
-/* ── Vault Panel (left sidebar) ──────────────────────── */
-.vault-panel {
-  border-right: 1px solid var(--border-passive);
-  background: var(--bg);
-  display: flex;
-  flex-direction: column;
-  transition: width 220ms var(--ease), opacity 180ms var(--ease);
-  min-width: 0;
-  overflow: hidden;
-  order: -1;
-}
-
-.vault-panel--expanded { opacity: 1; }
-.vault-panel--collapsed { width: 0 !important; opacity: 0; border-right: none; padding: 0; overflow: hidden; }
-
-.vault-header {
-  display: flex;
-  align-items: center;
-  height: 42px;
-  padding: 0 12px;
-  border-bottom: 1px solid var(--border-passive);
-  flex-shrink: 0;
-  gap: 8px;
-}
-
-.vault-header-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.vault-header-new-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-passive);
-  background: transparent;
-  color: var(--ink-muted);
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease);
-}
-
-.vault-header-new-btn:hover {
-  background: var(--ink-04);
-  color: var(--ink);
-  border-color: var(--border-active);
-}
-
-.vault-header-session-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-md);
-  border: none;
-  background: transparent;
-  color: var(--ink-muted);
-  font-size: 14px;
-  cursor: pointer;
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
-}
-
-.vault-header-session-toggle:hover {
-  background: var(--ink-04);
-  color: var(--ink);
-}
-
-.vault-search-bar {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border-passive);
-  flex-shrink: 0;
-}
-
-.vault-search-input {
-  width: 100%;
-  padding: 6px 10px;
-  border: 1px solid var(--border-passive);
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  font-family: var(--sans);
-  color: var(--ink);
-  background: var(--bg-elevated);
-  outline: none;
-  transition: border-color var(--dur) var(--ease);
-  box-sizing: border-box;
-}
-
-.vault-search-input:focus {
-  border-color: var(--border-active);
-}
-
-.vault-search-input::placeholder {
-  color: var(--ink-muted);
-  opacity: 0.5;
-}
-
-.vault-note-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 4px 0;
-}
-
-.vault-note-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: background var(--dur) var(--ease);
-  border-bottom: 1px solid var(--ink-03);
-}
-
-.vault-note-item:hover { background: var(--ink-04); }
-.vault-note-item--active { background: var(--accent-light); }
-
-.vault-note-icon {
-  font-size: 16px;
-  flex-shrink: 0;
-  opacity: 0.6;
-}
-
-.vault-note-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.vault-note-item-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.vault-note-item-date {
-  font-size: 10px;
-  color: var(--ink-muted);
-}
-
-.vault-note-item-tags {
-  display: flex;
-  gap: 3px;
-  margin-top: 2px;
-}
-
-.vault-note-tag {
-  font-size: 9px;
-  padding: 1px 5px;
-  border-radius: var(--radius-sm);
-  background: var(--ink-04);
-  color: var(--ink-muted);
-}
-
-.vault-editor {
-  border-top: 1px solid var(--border-passive);
-  padding: 12px;
-  flex-shrink: 0;
-  overflow-y: auto;
-  max-height: 50%;
-}
-
-.vault-editor--hidden { display: none; }
-
-.vault-editor-field {
-  margin-bottom: 8px;
-}
-
-.vault-editor-label {
-  display: block;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--ink-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 3px;
-}
-
-.vault-editor-input {
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid var(--border-passive);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-family: var(--sans);
-  color: var(--ink);
-  background: var(--bg-elevated);
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color var(--dur) var(--ease);
-}
-
-.vault-editor-input:focus {
-  border-color: var(--border-active);
-}
-
-.vault-editor-textarea {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid var(--border-passive);
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  font-family: var(--mono);
-  color: var(--ink);
-  background: var(--bg-elevated);
-  outline: none;
-  resize: vertical;
-  box-sizing: border-box;
-  line-height: 1.5;
-  min-height: 120px;
-}
-
-.vault-editor-textarea:focus {
-  border-color: var(--border-active);
-}
-
-.vault-editor-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.vault-editor-btn {
-  padding: 6px 14px;
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  border: 1px solid var(--border-passive);
-  background: var(--bg-elevated);
-  color: var(--ink);
-  transition: background var(--dur) var(--ease);
-}
-
-.vault-editor-btn:hover { background: var(--ink-04); }
-
-.vault-editor-btn--save {
-  background: var(--ink);
-  color: var(--bg-elevated);
-  border-color: var(--ink);
-}
-
-.vault-editor-btn--save:hover { opacity: 0.85; }
-
-.vault-editor-btn--delete {
-  border-color: rgba(239,68,68,0.3);
-  color: #ef4444;
-  margin-left: auto;
-}
-
-.vault-editor-btn--delete:hover { background: rgba(239,68,68,0.1); }
 
 /* ── Split layout ─────────────────────────────────────── */
 .main-split {
@@ -2363,44 +1829,6 @@ input, textarea { font-family: inherit; }
   border: none;
 }
 
-/* Vault panel collapsed by default */
-.main-split > .vault-panel--collapsed {
-  grid-row: 1;
-  grid-column: 1;
-  width: 0;
-  min-width: 0;
-  overflow: hidden;
-  opacity: 0;
-  pointer-events: none;
-  border: none;
-}
-
-/* Vault visible — takes 280px */
-.main-split--vault > .vault-panel--expanded,
-.main-split--vault-chat > .vault-panel--expanded {
-  grid-row: 1;
-  grid-column: 1;
-  width: 280px;
-  opacity: 1;
-}
-
-.main-split--dual > .vault-panel--expanded {
-  grid-row: 1;
-  grid-column: 1;
-  width: 280px;
-  opacity: 1;
-}
-
-/* Content area shifts when vault is open */
-.main-split--vault > .content-area,
-.main-split--vault-chat > .content-area {
-  grid-column: 2;
-}
-
-.main-split--dual > .content-area {
-  grid-column: 2;
-}
-
 /* Chat visible — takes 340px (or 420px in dual mode) */
 .main-split--chat > .chat-panel--expanded,
 .main-split--dual > .chat-panel--expanded {
@@ -2410,15 +1838,7 @@ input, textarea { font-family: inherit; }
   width: 340px;
 }
 
-/* In vault+chat mode, chat is col 3, adjust widths */
-.main-split--vault-chat > .chat-panel--expanded {
-  grid-row: 1;
-  grid-column: 3;
-  opacity: 1;
-  width: 280px;
-}
-
-/* In dual mode (chat + terminal), chat gets wider */
+/* In dual mode, chat gets wider */
 .main-split--dual > .chat-panel--expanded {
   width: 420px;
 }
@@ -2573,23 +1993,15 @@ input, textarea { font-family: inherit; }
 }
 .settings-provider-tabs {
   display: flex;
-  flex-wrap: nowrap;
   gap: 4px;
   margin-bottom: 16px;
   background: var(--ink-03);
   border-radius: var(--radius-md);
   padding: 3px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.settings-provider-tabs::-webkit-scrollbar {
-  display: none;
 }
 .settings-provider-tab {
-  flex: 1 0 auto;
-  min-width: fit-content;
-  padding: 7px 10px;
+  flex: 1;
+  padding: 7px 12px;
   border: none;
   background: transparent;
   font-size: 13px;
@@ -2598,13 +2010,6 @@ input, textarea { font-family: inherit; }
   border-radius: 4px;
   cursor: pointer;
   transition: all 150ms var(--ease);
-  white-space: nowrap;
-}
-@media (max-width: 480px) {
-  .settings-provider-tab {
-    padding: 6px 8px;
-    font-size: 11px;
-  }
 }
 .settings-provider-tab--active {
   background: var(--accent, #14b8a6);
@@ -3518,9 +2923,8 @@ input, textarea { font-family: inherit; }
       <button class="topbar-btn topbar-btn--active" id="btn-toggle-list" title="List view">☰</button>
       <button class="topbar-btn" id="btn-toggle-tree" title="Tree view">🌳</button>
       <button class="topbar-btn" id="btn-terminal" title="Toggle terminal"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></button>
-      <button class="topbar-btn" id="btn-vault" title="Toggle memory vault"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></button>
       <button class="topbar-btn" id="btn-chat" title="Toggle AI chat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
-      <button class="topbar-btn topbar-btn--primary" id="btn-open" title="Open Folder"><svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="btn-label">Open Folder</span></button>
+      <button class="topbar-btn topbar-btn--primary" id="btn-open">Open Folder</button>
     </div>
     <button class="topbar-btn topbar-btn--settings" id="btn-settings" title="Settings"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </header>
@@ -3544,10 +2948,6 @@ input, textarea { font-family: inherit; }
           <div class="settings-provider-tabs">
             <button class="settings-provider-tab settings-provider-tab--active" data-provider="ollama-cloud" id="tab-cloud">Ollama Cloud</button>
             <button class="settings-provider-tab" data-provider="ollama-local" id="tab-local">Ollama Local</button>
-            <button class="settings-provider-tab" data-provider="openai-compat" id="tab-openai-compat">OpenAI</button>
-            <button class="settings-provider-tab" data-provider="llama-cpp" id="tab-llama-cpp">llama.cpp</button>
-            <button class="settings-provider-tab" data-provider="vllm" id="tab-vllm">vLLM</button>
-            <button class="settings-provider-tab" data-provider="lm-studio" id="tab-lm-studio">LM Studio</button>
           </div>
           <div class="settings-active-indicator" id="settings-active-indicator">
             <span class="settings-active-dot"></span>
@@ -3598,54 +2998,11 @@ input, textarea { font-family: inherit; }
           </div>
         </div>
 
-        <!-- OpenAI-Compatible settings -->
-        <div class="settings-section" id="settings-openai-compat" style="display:none;">
-          <div class="settings-field">
-            <label for="openai-compat-api-key">API Key</label>
-            <input class="settings-input" type="password" id="openai-compat-api-key" placeholder="Enter your API key (optional)">
-          </div>
-          <div class="settings-field">
-            <label for="openai-compat-base-url">Base URL</label>
-            <input class="settings-input" type="text" id="openai-compat-base-url" placeholder="https://api.openai.com/v1">
-          </div>
-        </div>
-
-        <!-- llama.cpp settings -->
-        <div class="settings-section" id="settings-llama-cpp" style="display:none;">
-          <div class="settings-field">
-            <label for="llama-cpp-base-url">Base URL</label>
-            <input class="settings-input" type="text" id="llama-cpp-base-url" placeholder="http://localhost:8080/v1">
-          </div>
-        </div>
-
-        <!-- vLLM settings -->
-        <div class="settings-section" id="settings-vllm" style="display:none;">
-          <div class="settings-field">
-            <label for="vllm-api-key">API Key</label>
-            <input class="settings-input" type="password" id="vllm-api-key" placeholder="Enter your API key (optional)">
-          </div>
-          <div class="settings-field">
-            <label for="vllm-base-url">Base URL</label>
-            <input class="settings-input" type="text" id="vllm-base-url" placeholder="http://localhost:8000/v1">
-          </div>
-        </div>
-
-        <!-- LM Studio settings -->
-        <div class="settings-section" id="settings-lm-studio" style="display:none;">
-          <div class="settings-field">
-            <label for="lm-studio-base-url">Base URL</label>
-            <input class="settings-input" type="text" id="lm-studio-base-url" placeholder="http://localhost:1234/v1">
-          </div>
-        </div>
-
         <!-- Default model -->
         <div class="settings-section">
           <div class="settings-field">
             <label for="default-model">Default Model</label>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <select class="settings-input" id="default-model" style="flex:1;"></select>
-              <button class="settings-provider-tab" id="fetch-models-btn" style="flex:none;padding:7px 10px;font-size:12px;" title="Refresh model list">↻</button>
-            </div>
+            <input class="settings-input" type="text" id="default-model" placeholder="e.g. qwen3-coder">
           </div>
         </div>
 
@@ -3657,41 +3014,6 @@ input, textarea { font-family: inherit; }
 
   <!-- Main split: content + optional chat sidebar -->
   <div class="main-split" id="main-split">
-
-    <!-- Vault panel (left sidebar) -->
-    <div class="vault-panel vault-panel--collapsed" id="vault-panel">
-      <div class="vault-header">
-        <button class="vault-header-session-toggle" id="vault-session-toggle" title="Notes list"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></button>
-        <span class="vault-header-title" id="vault-note-title">Vault</span>
-        <button class="vault-header-new-btn" id="vault-new-note" title="New note">+</button>
-        <button class="icon-btn" id="vault-close" title="Close vault">✕</button>
-      </div>
-      <div class="vault-search-bar">
-        <input class="vault-search-input" id="vault-search" type="text" placeholder="Search notes…">
-      </div>
-      <div class="vault-note-list" id="vault-note-list"></div>
-
-      <!-- Note editor (inline) -->
-      <div class="vault-editor vault-editor--hidden" id="vault-editor">
-        <div class="vault-editor-field">
-          <label class="vault-editor-label">Title</label>
-          <input class="vault-editor-input" id="vault-editor-title" type="text" placeholder="Note title">
-        </div>
-        <div class="vault-editor-field">
-          <label class="vault-editor-label">Tags (comma separated)</label>
-          <input class="vault-editor-input" id="vault-editor-tags" type="text" placeholder="tag1, tag2">
-        </div>
-        <div class="vault-editor-field">
-          <textarea class="vault-editor-textarea" id="vault-editor-content" rows="8" placeholder="Write your note…"></textarea>
-        </div>
-        <div class="vault-editor-actions">
-          <button class="vault-editor-btn vault-editor-btn--save" id="vault-editor-save">Save</button>
-          <button class="vault-editor-btn vault-editor-btn--cancel" id="vault-editor-cancel">Cancel</button>
-          <button class="vault-editor-btn vault-editor-btn--delete" id="vault-editor-delete" style="display:none;">Delete</button>
-        </div>
-      </div>
-    </div>
-
     <div class="content-area" id="content-area">
       <!-- View stack: folder ↔ editor -->
       <div class="view-stack" id="view-stack">
@@ -3703,10 +3025,7 @@ input, textarea { font-family: inherit; }
     <!-- Terminal (moves to bottom-row in dual mode via JS) -->
     <div class="terminal-panel terminal-panel--collapsed" id="terminal-panel">
       <div class="terminal-header" id="terminal-header">
-        <div class="terminal-tabs" id="terminal-tabs">
-          <!-- Tabs rendered by JS -->
-        </div>
-        <button class="terminal-tab-add" id="term-tab-add" title="New terminal">+</button>
+        <span class="terminal-header-title">Terminal</span>
         <span class="terminal-header-badge" id="terminal-badge" style="display:none;">2</span>
         <div class="terminal-header-actions">
           <button class="terminal-btn" id="term-maximize" title="Maximize">⬜</button>
@@ -3714,20 +3033,19 @@ input, textarea { font-family: inherit; }
         </div>
       </div>
       <div class="terminal-body" id="terminal-body">
-        <!-- xterm.js containers rendered by JS -->
+        <!-- xterm.js mounts here -->
+        <div id="xterm-container" style="height:100%;width:100%;"></div>
       </div>
     </div>
 
     <!-- Chat panel -->
     <div class="chat-panel chat-panel--collapsed" id="chat-panel">
       <div class="chat-header">
-        <div class="chat-header-tools">
-          <button class="chat-header-session-toggle" id="chat-session-toggle" title="Sessions"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/></svg></button>
-          <select class="chat-model-picker" id="chat-model"><option value="">deepseek-v4-flash</option></select>
-          <button class="chat-header-new-btn" id="chat-new-session" title="New chat">+</button>
-          <button class="icon-btn" id="chat-close" title="Close chat">✕</button>
-        </div>
+        <button class="chat-header-session-toggle" id="chat-session-toggle" title="Sessions">&#9776;</button>
         <span class="chat-header-title" id="chat-session-title">New Chat</span>
+        <span class="chat-model-badge" id="chat-model">deepseek-v4-flash</span>
+        <button class="chat-header-new-btn" id="chat-new-session" title="New chat">+</button>
+        <button class="icon-btn" id="chat-close" title="Close chat">✕</button>
       </div>
       <div class="chat-session-bar chat-session-bar--collapsed" id="chat-session-bar">
         <button class="chat-new-session-btn" id="chat-new-session-bar">+ New Chat</button>
@@ -3740,10 +3058,9 @@ input, textarea { font-family: inherit; }
         <div class="chat-attach-dropdown" id="chat-attach-dropdown">
           <div class="chat-attach-dropdown-item" data-attach="current-file">Attach Current File</div>
           <div class="chat-attach-dropdown-item" data-attach="folder-contents">Attach Folder Contents</div>
-          <div class="chat-attach-dropdown-item" data-attach="vault-note">Attach Vault Note</div>
         </div>
         <div class="chat-input-wrapper">
-          <textarea class="chat-textarea" id="chat-input" rows="1" placeholder=""></textarea>
+          <textarea class="chat-textarea" id="chat-input" rows="1" placeholder="Ask about your codebase…"></textarea>
         </div>
         <button class="chat-send-btn" id="chat-send" title="Send">↑</button>
         <button class="chat-stop-btn" id="chat-stop" title="Stop">■</button>
@@ -3855,9 +3172,6 @@ const state = {
   activeTab: '',
   terminalExpanded: false,
   terminalMaximized: false,
-  terminalTabs: [],      // { id, label }
-  terminalTabCounter: 0, // for unique IDs
-  activeTerminalTab: null,
   chatExpanded: false,
   viewMode: 'list', // 'list' | 'grid' | 'tree'
   files: {},        // path -> { content, type, name, extent } cached file data
@@ -3868,8 +3182,6 @@ const state = {
   loading: false,
   diffLines: null,  // { added: Set<number>, removed: Set<number> } for git diff gutter
   diffVisible: false,
-  vaultExpanded: false,
-  vaultEditingId: null, // note id being edited, null = new note
 };
 
 // ── File API helpers ───────────────────────────────────
@@ -4850,278 +4162,187 @@ function highlightCode(text, lang) {
   return result;
 }
 
-// ── Terminal (real xterm.js + WebSocket, multi-tab) ──
-// Each terminal tab stores { id, label, xterm, fitAddon, socket, container, resizeObserver, keyboardHandler }
+// ── Terminal (real xterm.js + WebSocket) ────────────────
+let xtermInstance = null;
+let termSocket = null;
+let termFitAddon = null;
 
-function createTerminalTheme(isDark) {
-  return isDark ? {
-    background: '#1a1a2e',
-    foreground: '#e4e4ef',
-    cursor: '#14b8a6',
-    selectionBackground: 'rgba(20,184,166,0.25)',
-    black: '#45475a', red: '#f38ba8', green: '#4ade80', yellow: '#f9e2af',
-    blue: '#89b4fa', magenta: '#f9a8d4', cyan: '#94e2d5', white: '#bac2de',
-    brightBlack: '#585b70', brightRed: '#f38ba8', brightGreen: '#86efac',
-    brightYellow: '#f9e2af', brightBlue: '#89b4fa', brightMagenta: '#f5c2e7',
-    brightCyan: '#94e2d5', brightWhite: '#e4e4ef',
-  } : {
-    background: '#1e1e2e',
-    foreground: '#cdd6f4',
-    cursor: '#0d9488',
-    selectionBackground: 'rgba(13,148,136,0.25)',
-    black: '#45475a', red: '#f38ba8', green: '#a6e3a1', yellow: '#f9e2af',
-    blue: '#89b4fa', magenta: '#f5c2e7', cyan: '#94e2d5', white: '#bac2de',
-    brightBlack: '#585b70', brightRed: '#f38ba8', brightGreen: '#a6e3a1',
-    brightYellow: '#f9e2af', brightBlue: '#89b4fa', brightMagenta: '#f5c2e7',
-    brightCyan: '#94e2d5', brightWhite: '#a6adc8',
-  };
-}
-
-function getTerminalById(tabId) {
-  return state.terminalTabs.find(t => t.id === tabId) || null;
-}
-
-function switchTerminalTab(tabId) {
-  if (state.activeTerminalTab === tabId) return;
-  // Deactivate old
-  if (state.activeTerminalTab) {
-    const old = getTerminalById(state.activeTerminalTab);
-    if (old && old.socket) {
-      old.socket.emit('terminal:attach', { slot: old.id });
-    }
-  }
-  state.activeTerminalTab = tabId;
-  renderTerminalTabs();
-  renderTerminalContainers();
-  // Fit the newly visible terminal
-  const tab = getTerminalById(tabId);
-  if (tab && tab.fitAddon) {
-    requestAnimationFrame(() => tab.fitAddon.fit());
-  }
-}
-
-function createTerminalTab() {
-  state.terminalTabCounter++;
-  const id = 'term-' + state.terminalTabCounter;
-  const label = state.terminalTabCounter === 1 ? 'bash' : 'bash #' + state.terminalTabCounter;
-  const tab = { id, label, xterm: null, fitAddon: null, socket: null, container: null, resizeObserver: null };
-  state.terminalTabs.push(tab);
-  if (!state.activeTerminalTab) {
-    state.activeTerminalTab = id;
-  }
-  renderTerminalTabs();
-  renderTerminalContainers();
-  initSingleTerminal(id);
-  return id;
-}
-
-function closeTerminalTab(tabId) {
-  const idx = state.terminalTabs.findIndex(t => t.id === tabId);
-  if (idx === -1) return;
-  const tab = state.terminalTabs[idx];
-  // Clean up
-  if (tab.xterm) { tab.xterm.dispose(); tab.xterm = null; }
-  if (tab.socket) { tab.socket.disconnect(); tab.socket = null; }
-  if (tab.resizeObserver) { tab.resizeObserver.disconnect(); tab.resizeObserver = null; }
-  if (tab.container) { tab.container.remove(); }
-  state.terminalTabs.splice(idx, 1);
-  // Switch active tab
-  if (state.activeTerminalTab === tabId) {
-    if (state.terminalTabs.length > 0) {
-      const newIdx = Math.min(idx, state.terminalTabs.length - 1);
-      state.activeTerminalTab = state.terminalTabs[newIdx].id;
-    } else {
-      state.activeTerminalTab = null;
-    }
-  }
-  renderTerminalTabs();
-  renderTerminalContainers();
-  // Ensure at least one tab exists
-  if (state.terminalTabs.length === 0) {
-    createTerminalTab();
-  }
-}
-
-function renderTerminalTabs() {
-  const tabsEl = document.getElementById('terminal-tabs');
-  if (!tabsEl) return;
-  tabsEl.innerHTML = '';
-  for (const tab of state.terminalTabs) {
-    const btn = document.createElement('button');
-    btn.className = 'terminal-tab' + (tab.id === state.activeTerminalTab ? ' terminal-tab--active' : '');
-    btn.dataset.tabId = tab.id;
-    btn.innerHTML = '<svg class="terminal-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>'
-      + '<span class="terminal-tab-label">' + escapeHtml(tab.label) + '</span>'
-      + '<button class="terminal-tab-close" data-tab-close="' + tab.id + '">✕</button>';
-    btn.addEventListener('click', (e) => {
-      if (e.target.closest('.terminal-tab-close')) return;
-      switchTerminalTab(tab.id);
-    });
-    tabsEl.appendChild(btn);
-  }
-  // Wire close buttons
-  document.querySelectorAll('.terminal-tab-close').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeTerminalTab(el.dataset.tabClose);
-    });
-  });
-}
-
-function renderTerminalContainers() {
-  const body = document.getElementById('terminal-body');
-  if (!body) return;
-  // Remove orphan containers
-  for (const tab of state.terminalTabs) {
-    let container = document.getElementById('term-c-' + tab.id);
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'term-c-' + tab.id;
-      container.className = 'terminal-tab-container';
-      container.style.height = '100%';
-      container.style.width = '100%';
-      body.appendChild(container);
-      tab.container = container;
-    }
-    container.className = 'terminal-tab-container' + (tab.id === state.activeTerminalTab ? ' terminal-tab-container--active' : '');
-  }
-  // Remove containers for deleted tabs
-  const existingIds = new Set(state.terminalTabs.map(t => t.id));
-  body.querySelectorAll('.terminal-tab-container').forEach(el => {
-    const tid = el.id.replace('term-c-', '');
-    if (!existingIds.has(tid)) el.remove();
-  });
-}
-
-function getTerminalTheme() {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  return createTerminalTheme(isDark);
-}
-
-function initSingleTerminal(tabId) {
-  const tab = getTerminalById(tabId);
-  if (!tab) return;
-  if (tab.xterm) {
-    tab.xterm.dispose();
-    tab.xterm = null;
-  }
-  if (tab.socket) {
-    tab.socket.disconnect();
-    tab.socket = null;
-  }
-
-  const container = document.getElementById('term-c-' + tabId);
+function initTerminal() {
+  const container = document.getElementById('xterm-container');
   if (!container || !window.Terminal) return;
 
-  const theme = getTerminalTheme();
-  tab.xterm = new window.Terminal({
+  // Clean up old instance
+  if (xtermInstance) {
+    xtermInstance.dispose();
+    xtermInstance = null;
+  }
+  if (termSocket) {
+    termSocket.disconnect();
+    termSocket = null;
+  }
+
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  xtermInstance = new window.Terminal({
     cursorBlink: true,
     cursorStyle: 'bar',
     fontSize: 13,
     fontFamily: "'SF Mono','Fira Code',Consolas,monospace",
-    theme,
+    theme: isDark ? {
+      background: '#1a1a2e',
+      foreground: '#e4e4ef',
+      cursor: '#14b8a6',
+      selectionBackground: 'rgba(20,184,166,0.25)',
+      black: '#45475a',
+      red: '#f38ba8',
+      green: '#4ade80',
+      yellow: '#f9e2af',
+      blue: '#89b4fa',
+      magenta: '#f9a8d4',
+      cyan: '#94e2d5',
+      white: '#bac2de',
+      brightBlack: '#585b70',
+      brightRed: '#f38ba8',
+      brightGreen: '#86efac',
+      brightYellow: '#f9e2af',
+      brightBlue: '#89b4fa',
+      brightMagenta: '#f5c2e7',
+      brightCyan: '#94e2d5',
+      brightWhite: '#e4e4ef',
+    } : {
+      background: '#1e1e2e',
+      foreground: '#cdd6f4',
+      cursor: '#0d9488',
+      selectionBackground: 'rgba(13,148,136,0.25)',
+      black: '#45475a',
+      red: '#f38ba8',
+      green: '#a6e3a1',
+      yellow: '#f9e2af',
+      blue: '#89b4fa',
+      magenta: '#f5c2e7',
+      cyan: '#94e2d5',
+      white: '#bac2de',
+      brightBlack: '#585b70',
+      brightRed: '#f38ba8',
+      brightGreen: '#a6e3a1',
+      brightYellow: '#f9e2af',
+      brightBlue: '#89b4fa',
+      brightMagenta: '#f5c2e7',
+      brightCyan: '#94e2d5',
+      brightWhite: '#a6adc8',
+    },
     allowProposedApi: true,
   });
 
-  tab.fitAddon = new window.FitAddon.FitAddon();
-  tab.xterm.loadAddon(tab.fitAddon);
-  tab.xterm.open(container);
-  tab.fitAddon.fit();
+  termFitAddon = new window.FitAddon.FitAddon();
+  xtermInstance.loadAddon(termFitAddon);
+  xtermInstance.open(container);
+  termFitAddon.fit();
 
-  // Connect WebSocket to backend
+  // Connect WebSocket to backend terminal gateway (namespace /terminal)
   const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   const wsUrl = `${wsProto}//${location.host}/terminal`;
-  tab.socket = window.io(wsUrl, {
+  termSocket = window.io(wsUrl, {
     path: '/terminal',
     transports: ['polling', 'websocket'],
     reconnection: true,
   });
 
-  tab.socket.on('connect', () => {
+  termSocket.on('connect', () => {
     const cwd = state.workspaceRoot || undefined;
-    tab.socket.emit('terminal:attach', {
-      slot: tabId,
+    termSocket.emit('terminal:create', {
       cwd,
-      cols: tab.xterm.cols,
-      rows: tab.xterm.rows,
+      cols: xtermInstance.cols,
+      rows: xtermInstance.rows,
     });
   });
 
-  tab.socket.on('terminal:data', (data) => {
-    if (tab.xterm) tab.xterm.write(data);
+  termSocket.on('terminal:data', (data) => {
+    xtermInstance.write(data);
   });
 
-  tab.socket.on('terminal:exit', ({ exitCode }) => {
-    if (tab.xterm) tab.xterm.write(`\r\n\x1b[90m[Process exited with code \${exitCode}]\x1b[0m\r\n`);
+  termSocket.on('terminal:exit', ({ exitCode }) => {
+    xtermInstance.write(`\r\n\x1b[90m[Process exited with code ${exitCode}]\x1b[0m\r\n`);
   });
 
-  tab.socket.on('disconnect', () => {
-    if (tab.xterm) tab.xterm.write('\r\n\x1b[31m[Disconnected]\x1b[0m\r\n');
+  termSocket.on('disconnect', () => {
+    xtermInstance.write('\r\n\x1b[31m[Disconnected]\x1b[0m\r\n');
   });
 
   // Input → server
-  tab.xterm.onData((data) => {
-    if (tab.socket) tab.socket.emit('terminal:input', { data });
+  xtermInstance.onData((data) => {
+    termSocket.emit('terminal:input', { data });
   });
 
   // Resize
-  if (tab.resizeObserver) tab.resizeObserver.disconnect();
-  tab.resizeObserver = new ResizeObserver(() => {
-    if (tab.fitAddon && tab.xterm && tab.socket) {
-      tab.fitAddon.fit();
-      tab.socket.emit('terminal:resize', { cols: tab.xterm.cols, rows: tab.xterm.rows });
+  const resizeObserver = new ResizeObserver(() => {
+    if (termFitAddon && xtermInstance) {
+      termFitAddon.fit();
+      termSocket.emit('terminal:resize', { cols: xtermInstance.cols, rows: xtermInstance.rows });
     }
   });
-  tab.resizeObserver.observe(container);
+  resizeObserver.observe(container);
 
   // ── Mobile keyboard detection ───────────────────────────
-  if (tab.keyboardHandler) {
-    window.visualViewport?.removeEventListener('resize', tab.keyboardHandler);
-  }
+  // When the soft keyboard opens, the visual viewport shrinks.
+  // If the terminal is expanded, we pin it to the top of the
+  // remaining viewport so the input area stays visible.
   if ('visualViewport' in window) {
     let keyboardHeight = 0;
     const panel = document.getElementById('terminal-panel');
     const body = document.body;
-    tab.keyboardHandler = () => {
+
+    window.visualViewport.addEventListener('resize', () => {
       if (!panel) return;
       const vv = window.visualViewport;
       const h = window.innerHeight;
       keyboardHeight = h - vv.height;
+
+      // Only react when panel is expanded (not collapsed/maximized)
       const isExpanded = panel.classList.contains('terminal-panel--expanded');
       if (isExpanded && keyboardHeight > 150) {
+        // Keyboard is open — float terminal above it
         panel.classList.add('terminal-panel--keyboard-overlay');
         body.classList.add('terminal-keyboard-open');
-        panel.style.bottom = `\${keyboardHeight}px`;
-        panel.style.height = `\${vv.height * 0.45}px`;
-        requestAnimationFrame(() => { if (tab.fitAddon) tab.fitAddon.fit(); });
-      } else {
+        panel.style.bottom = `${keyboardHeight}px`;
+        // Refit to new height
+        panel.style.height = `${vv.height * 0.45}px`;
+        requestAnimationFrame(() => {
+          if (termFitAddon) termFitAddon.fit();
+        });
+      }
+      else {
+        // Keyboard closed — remove overlay
         panel.classList.remove('terminal-panel--keyboard-overlay');
         body.classList.remove('terminal-keyboard-open');
         panel.style.bottom = '';
         panel.style.height = '';
-        requestAnimationFrame(() => { if (tab.fitAddon) tab.fitAddon.fit(); });
+        requestAnimationFrame(() => {
+          if (termFitAddon) termFitAddon.fit();
+        });
       }
-    };
-    window.visualViewport.addEventListener('resize', tab.keyboardHandler);
-  }
-}
+    });
 
-function initTerminal() {
-  // Ensure at least one tab exists
-  if (state.terminalTabs.length === 0) {
-    createTerminalTab();
+    // Also scroll input into view when data is typed
+    xtermInstance.onData(() => {
+      if (keyboardHeight > 150) {
+        // Brief pause to let the keyboard settle
+        setTimeout(() => {
+          const screenElement = container.querySelector('.xterm-screen');
+          if (screenElement) {
+            screenElement.scrollIntoView({ block: 'end', behavior: 'smooth' });
+          }
+          // Ensure cursor is visible
+          xtermInstance.scrollToBottom?.();
+        }, 50);
+      }
+    });
   }
 }
 
 function renderTerminal() {
-  if (state.terminalTabs.length === 0) {
-    createTerminalTab();
-  } else {
-    // Re-init the active terminal if it lost its xterm (e.g. after theme change)
-    const active = getTerminalById(state.activeTerminalTab);
-    if (active && !active.xterm) {
-      initSingleTerminal(active.id);
-    }
+  // Just init the terminal if not already done
+  if (!xtermInstance) {
+    initTerminal();
   }
 }
 
@@ -5186,31 +4407,16 @@ function updateMainLayout() {
   const mainSplit = document.getElementById('main-split');
   const termOpen = state.terminalExpanded || state.terminalMaximized;
   const chatOpen = state.chatExpanded;
-  const vaultOpen = state.vaultExpanded;
-  mainSplit.classList.remove('main-split--dual', 'main-split--chat', 'main-split--vault', 'main-split--vault-chat');
-
-  // Update vault panel width
-  const vaultPanel = document.getElementById('vault-panel');
-  if (vaultPanel) {
-    vaultPanel.style.width = vaultOpen ? '280px' : '0px';
-  }
-
-  if (chatOpen && termOpen && vaultOpen) {
+  mainSplit.classList.remove('main-split--dual', 'main-split--chat');
+  if (chatOpen && termOpen) {
     mainSplit.classList.add('main-split--dual');
-  } else if (chatOpen && termOpen) {
-    mainSplit.classList.add('main-split--dual');
-  } else if (chatOpen && vaultOpen) {
-    mainSplit.classList.add('main-split--vault-chat');
   } else if (chatOpen) {
     mainSplit.classList.add('main-split--chat');
-  } else if (vaultOpen) {
-    mainSplit.classList.add('main-split--vault');
   }
   // If only terminal or neither: default grid (content full width, terminal below)
   // Trigger terminal fit after layout change
-  const activeTab = getTerminalById(state.activeTerminalTab);
-  if (activeTab && activeTab.fitAddon) {
-    requestAnimationFrame(() => activeTab.fitAddon.fit());
+  if (xtermInstance && termFitAddon) {
+    requestAnimationFrame(() => termFitAddon.fit());
   }
 }
 
@@ -5289,190 +4495,6 @@ document.getElementById('term-close').addEventListener('click', (e) => {
   updateMainLayout();
 });
 
-document.getElementById('term-tab-add').addEventListener('click', (e) => {
-  e.stopPropagation();
-  if (state.terminalTabs.length >= 4) return;
-  // Expand the panel if collapsed
-  if (!state.terminalExpanded) {
-    state.terminalExpanded = true;
-    document.getElementById('terminal-panel').className = 'terminal-panel terminal-panel--expanded';
-    updateTerminalLayout();
-    updateMainLayout();
-  }
-  createTerminalTab();
-});
-
-// ── Vault Panel ─────────────────────────────────────────
-let vaultNotes = [];
-let vaultSearchDebounce = null;
-
-function toggleVault() {
-  state.vaultExpanded = !state.vaultExpanded;
-  const panel = document.getElementById('vault-panel');
-  panel.className = state.vaultExpanded
-    ? 'vault-panel vault-panel--expanded'
-    : 'vault-panel vault-panel--collapsed';
-  if (state.vaultExpanded) loadVaultNotes();
-  updateMainLayout();
-}
-
-async function loadVaultNotes() {
-  try {
-    const res = await fetch(`${API_BASE}/vault/notes`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    vaultNotes = await res.json();
-  } catch (e) {
-    console.warn('Vault load error:', e.message);
-    vaultNotes = [];
-  }
-  renderVaultNotes();
-}
-
-function renderVaultNotes() {
-  const list = document.getElementById('vault-note-list');
-  if (!list) return;
-  list.innerHTML = '';
-  if (vaultNotes.length === 0) {
-    list.innerHTML = '<div class="vault-note-item" style="color:var(--ink-muted);font-size:12px;padding:16px 12px;">No notes yet. Click + to create one.</div>';
-    return;
-  }
-  vaultNotes.forEach(note => {
-    const item = document.createElement('div');
-    item.className = 'vault-note-item' + (state.vaultEditingId === note.id ? ' vault-note-item--active' : '');
-    item.dataset.noteId = note.id;
-
-    const tagsHtml = note.tags && note.tags.length
-      ? `<div class="vault-note-item-tags">${note.tags.slice(0,3).map(t => `<span class="vault-note-tag">${escapeHtml(t)}</span>`).join('')}</div>`
-      : '';
-
-    const date = new Date(note.updatedAt);
-    const dateStr = date.toLocaleDateString();
-
-    item.innerHTML = `
-      <span class="vault-note-icon">📝</span>
-      <div class="vault-note-info">
-        <div class="vault-note-item-title">${escapeHtml(note.title)}</div>
-        <div class="vault-note-item-date">${dateStr}</div>
-        ${tagsHtml}
-      </div>
-    `;
-
-    item.addEventListener('click', () => openVaultNote(note.id));
-    list.appendChild(item);
-  });
-}
-
-async function openVaultNote(noteId) {
-  try {
-    const res = await fetch(`${API_BASE}/vault/notes/${noteId}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const note = await res.json();
-
-    state.vaultEditingId = noteId;
-    document.getElementById('vault-editor-title').value = note.title || '';
-    document.getElementById('vault-editor-tags').value = (note.tags || []).join(', ');
-    document.getElementById('vault-editor-content').value = note.content || '';
-    document.getElementById('vault-editor-delete').style.display = '';
-    document.getElementById('vault-editor').classList.remove('vault-editor--hidden');
-    document.getElementById('vault-note-title').textContent = note.title;
-    renderVaultNotes();
-  } catch (e) {
-    console.error('Failed to open vault note:', e);
-  }
-}
-
-function newVaultNote() {
-  state.vaultEditingId = null;
-  document.getElementById('vault-editor-title').value = '';
-  document.getElementById('vault-editor-tags').value = '';
-  document.getElementById('vault-editor-content').value = '';
-  document.getElementById('vault-editor-delete').style.display = 'none';
-  document.getElementById('vault-editor').classList.remove('vault-editor--hidden');
-  document.getElementById('vault-note-title').textContent = 'New Note';
-  document.getElementById('vault-editor-title').focus();
-  renderVaultNotes();
-}
-
-function cancelVaultEdit() {
-  document.getElementById('vault-editor').classList.add('vault-editor--hidden');
-  state.vaultEditingId = null;
-  renderVaultNotes();
-}
-
-async function saveVaultNote() {
-  const title = document.getElementById('vault-editor-title').value.trim();
-  const tagsStr = document.getElementById('vault-editor-tags').value.trim();
-  const content = document.getElementById('vault-editor-content').value;
-  const tags = tagsStr ? tagsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
-
-  if (!title) { alert('Title is required'); return; }
-
-  try {
-    if (state.vaultEditingId) {
-      // Update existing
-      await fetch(`${API_BASE}/vault/notes/${state.vaultEditingId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, tags, content }),
-      });
-    } else {
-      // Create new
-      await fetch(`${API_BASE}/vault/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, tags, content }),
-      });
-    }
-    document.getElementById('vault-editor').classList.add('vault-editor--hidden');
-    state.vaultEditingId = null;
-    await loadVaultNotes();
-  } catch (e) {
-    alert('Save failed: ' + e.message);
-  }
-}
-
-async function deleteVaultNote() {
-  if (!state.vaultEditingId) return;
-  if (!confirm('Delete this note?')) return;
-  try {
-    await fetch(`${API_BASE}/vault/notes/${state.vaultEditingId}`, { method: 'DELETE' });
-    document.getElementById('vault-editor').classList.add('vault-editor--hidden');
-    state.vaultEditingId = null;
-    await loadVaultNotes();
-  } catch (e) {
-    alert('Delete failed: ' + e.message);
-  }
-}
-
-// ── Vault event handlers ──
-document.getElementById('btn-vault').addEventListener('click', toggleVault);
-document.getElementById('vault-close').addEventListener('click', () => {
-  state.vaultExpanded = false;
-  document.getElementById('vault-panel').className = 'vault-panel vault-panel--collapsed';
-  updateMainLayout();
-});
-document.getElementById('vault-new-note').addEventListener('click', newVaultNote);
-document.getElementById('vault-editor-save').addEventListener('click', saveVaultNote);
-document.getElementById('vault-editor-cancel').addEventListener('click', cancelVaultEdit);
-document.getElementById('vault-editor-delete').addEventListener('click', deleteVaultNote);
-
-// Search with 300ms debounce
-document.getElementById('vault-search').addEventListener('input', (e) => {
-  if (vaultSearchDebounce) clearTimeout(vaultSearchDebounce);
-  vaultSearchDebounce = setTimeout(async () => {
-    const q = e.target.value.trim();
-    if (!q) { loadVaultNotes(); return; }
-    try {
-      const res = await fetch(`${API_BASE}/vault/search?q=${encodeURIComponent(q)}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      vaultNotes = await res.json();
-      renderVaultNotes();
-    } catch (err) {
-      console.warn('Vault search error:', err.message);
-    }
-  }, 300);
-});
-
 // ── Chat – Sessions & Messages ─────────────────────────────
 const chatInput = document.getElementById('chat-input');
 const chatSendBtn = document.getElementById('chat-send');
@@ -5495,7 +4517,6 @@ let sessionBarVisible = false;
 let streamAbort = null;          // AbortController for streaming
 let attachedContext = null;       // { type, label, content }
 let streamingBubble = null;      // The bubble being built during streaming
-let streamingToolGroup = null;   // Tool group container during streaming
 
 // ── Auto-scroll smarts ──
 function isNearBottom() {
@@ -5543,29 +4564,12 @@ chatAttachDropdown.querySelectorAll('.chat-attach-dropdown-item').forEach(item =
       };
     } else if (type === 'folder-contents') {
       const entries = state.directoryCache[state.currentPath] || state.currentDir || [];
-      const listing = entries.map(e => `- ${e.type === 'directory' ? '📁' : '📄'} ${e.name} (${e.type})`).join('\\n');
+      const listing = entries.map(e => `- ${e.type === 'directory' ? '📁' : '📄'} ${e.name} (${e.type})`).join('\n');
       attachedContext = {
         type: 'folder',
         label: `Folder: ${state.currentPath || 'root'}`,
-        content: `[Folder contents of: ${state.currentPath || 'root'}]\\n${listing || '(empty)'}`
+        content: `[Folder contents of: ${state.currentPath || 'root'}]\n${listing || '(empty)'}`
       };
-    } else if (type === 'vault-note') {
-      // Open vault panel and let user pick a note, or use last edited
-      if (!state.vaultExpanded) toggleVault();
-      // If there's a note currently being viewed, attach it
-      if (state.vaultEditingId) {
-        try {
-          const res = await fetch(`${API_BASE}/vault/notes/${state.vaultEditingId}`);
-          const note = await res.json();
-          attachedContext = {
-            type: 'vault',
-            label: `📝 ${note.title}`,
-            content: `[Vault Note: ${note.title}]\\n${note.content}`
-          };
-        } catch (e) { alert('Failed to load vault note.'); }
-      } else {
-        alert('Open a vault note first by clicking it in the vault sidebar, then attach it.');
-      }
     }
     renderContextPills();
   });
@@ -5714,14 +4718,11 @@ async function switchToSession(sessionId) {
     const res = await fetch(`${API_BASE}/sessions/${sessionId}`);
     const session = await res.json();
     if (session.model) {
-      updateModelBadge(activeProviderTab, session.model);
+      document.getElementById('chat-model').textContent = session.model;
     }
     updateSessionTitle(session);
     renderMessages(session.messages || []);
     renderSessionList();
-    // Collapse session bar after switching
-    sessionBarVisible = false;
-    chatSessionBar.className = 'chat-session-bar chat-session-bar--collapsed';
   } catch (e) {
     console.error('Failed to load session:', e);
   }
@@ -5834,47 +4835,6 @@ function renderMarkdown(md) {
 }
 
 // ── Render messages from session data ──
-function createToolGroup(toolCalls, toolResults) {
-  // Build a collapsible group containing all tool calls + results for one assistant turn
-  const names = toolCalls.map(tc => tc.function?.name || 'unknown');
-  const uniqueNames = [...new Set(names)];
-  const summary = uniqueNames.length <= 3
-    ? uniqueNames.join(', ')
-    : `${uniqueNames.slice(0, 3).join(', ')} +${uniqueNames.length - 3} more`;
-
-  const group = document.createElement('div');
-  group.className = 'chat-tool-group';
-
-  const header = document.createElement('div');
-  header.className = 'chat-tool-group-header';
-  header.innerHTML = `<span class="chat-tool-group-toggle">▶</span> <span style="flex:1">🔧 ${toolCalls.length} tool call${toolCalls.length > 1 ? 's' : ''}: ${escapeHtml(summary)}</span>`;
-
-  const body = document.createElement('div');
-  body.className = 'chat-tool-group-body';
-
-  // Add each tool call + its result
-  for (let i = 0; i < toolCalls.length; i++) {
-    const tc = toolCalls[i];
-    const callEl = createToolCallBlock(tc);
-    body.appendChild(callEl);
-
-    // Find matching result
-    const result = toolResults.find(r => r.toolCallId === tc.id);
-    if (result) {
-      const resultEl = createToolResultBlock(result);
-      body.appendChild(resultEl);
-    }
-  }
-
-  header.addEventListener('click', () => {
-    group.classList.toggle('chat-tool-group--expanded');
-  });
-
-  group.appendChild(header);
-  group.appendChild(body);
-  return group;
-}
-
 function renderMessages(messages) {
   chatMessages.innerHTML = '';
   if (!messages || messages.length === 0) {
@@ -5884,79 +4844,8 @@ function renderMessages(messages) {
     chatMessages.appendChild(welcome);
     return;
   }
-
-  // Group consecutive tool results with their preceding assistant message
-  let i = 0;
-  while (i < messages.length) {
-    const msg = messages[i];
-
-    if (msg.role === 'tool') {
-      // Orphan tool result without a preceding assistant tool call — render individually
-      renderSingleMessage(msg);
-      i++;
-      continue;
-    }
-
-    if (msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length > 0) {
-      // Collect the tool results that follow this assistant message
-      const toolResults = [];
-      let j = i + 1;
-      while (j < messages.length && messages[j].role === 'tool') {
-        toolResults.push(messages[j]);
-        j++;
-      }
-
-      // Render the assistant bubble (with content if any)
-      const wrapper = document.createElement('div');
-      wrapper.className = 'chat-msg chat-msg--assistant';
-      wrapper.dataset.role = 'assistant';
-
-      // Action buttons
-      const actions = document.createElement('div');
-      actions.className = 'chat-msg-actions';
-      const regenBtn = document.createElement('button');
-      regenBtn.className = 'chat-msg-action-btn';
-      regenBtn.title = 'Regenerate response';
-      regenBtn.textContent = '↻';
-      regenBtn.addEventListener('click', () => {
-        const prevUserContent = findPrevUserContent(wrapper);
-        if (prevUserContent) { chatInput.value = prevUserContent; sendChat(); }
-      });
-      actions.appendChild(regenBtn);
-      wrapper.appendChild(actions);
-
-      if (msg.content) {
-        const bubble = document.createElement('div');
-        bubble.className = 'chat-msg-bubble';
-        bubble.innerHTML = renderMarkdown(msg.content);
-        postProcessAssistantBubble(bubble);
-        wrapper.appendChild(bubble);
-      }
-
-      // Tool group — all calls + results in one collapsible section
-      const toolGroup = createToolGroup(msg.toolCalls, toolResults);
-      wrapper.appendChild(toolGroup);
-
-      chatMessages.appendChild(wrapper);
-      i = j; // skip past the tool results we already consumed
-    } else {
-      renderSingleMessage(msg);
-      i++;
-    }
-  }
+  messages.forEach(msg => renderSingleMessage(msg));
   chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function findPrevUserContent(wrapper) {
-  const msgs = chatMessages.querySelectorAll('.chat-msg');
-  for (let i = msgs.length - 1; i >= 0; i--) {
-    const m = msgs[i];
-    if (m === wrapper) continue;
-    if (m.dataset.role === 'user') {
-      return m.querySelector('.chat-msg-bubble')?.textContent;
-    }
-  }
-  return null;
 }
 
 function renderSingleMessage(msg) {
@@ -6029,8 +4918,10 @@ function renderSingleMessage(msg) {
     }
 
     if (msg.toolCalls && msg.toolCalls.length > 0) {
-      const toolGroup = createToolGroup(msg.toolCalls, []);
-      wrapper.appendChild(toolGroup);
+      msg.toolCalls.forEach(tc => {
+        const toolEl = createToolCallBlock(tc);
+        wrapper.appendChild(toolEl);
+      });
     }
 
     if (!msg.content && (!msg.toolCalls || msg.toolCalls.length === 0)) {
@@ -6045,8 +4936,6 @@ function renderSingleMessage(msg) {
     return;
   }
 
-  // Tool results rendered individually only for orphaned messages
-  // (normally they're inside createToolGroup via renderMessages)
   if (role === 'tool') {
     const toolEl = createToolResultBlock(msg);
     wrapper.appendChild(toolEl);
@@ -6182,74 +5071,14 @@ function finalizeStreamingBubble() {
     }
   }
   streamingBubble = null;
-  streamingToolGroup = null;
 }
 
 function addStreamToolCall(toolCall) {
-  // Create tool group on first tool call if not yet created
-  let wrapper = document.getElementById('chat-streaming');
-  if (!wrapper) return;
-
-  let groupBody = wrapper.querySelector('.chat-tool-group-body');
-  if (!groupBody) {
-    // First tool call — create the group
-    streamingToolGroup = document.createElement('div');
-    streamingToolGroup.className = 'chat-tool-group';
-
-    const header = document.createElement('div');
-    header.className = 'chat-tool-group-header';
-    header.innerHTML = '<span class="chat-tool-group-toggle">▶</span> <span class="chat-tool-group-label" style="flex:1">🔧 running tools...</span>';
-    header.addEventListener('click', () => {
-      streamingToolGroup.classList.toggle('chat-tool-group--expanded');
-    });
-
-    groupBody = document.createElement('div');
-    groupBody.className = 'chat-tool-group-body';
-    groupBody.style.display = 'block'; // Show during streaming so user sees tools executing
-
-    streamingToolGroup.appendChild(header);
-    streamingToolGroup.appendChild(groupBody);
-    wrapper.appendChild(streamingToolGroup);
+  const wrapper = document.getElementById('chat-streaming');
+  if (wrapper) {
+    const toolEl = createToolCallBlock(toolCall);
+    wrapper.appendChild(toolEl);
   }
-
-  const toolEl = createToolCallBlock(toolCall);
-  groupBody.appendChild(toolEl);
-
-  // Update label with count
-  const label = streamingToolGroup.querySelector('.chat-tool-group-label');
-  const toolCount = groupBody.querySelectorAll('.chat-tool-call').length;
-  const name = toolCall.function?.name || 'unknown';
-  label.textContent = `🔧 ${toolCount} tool call${toolCount > 1 ? 's' : ''}: ${name}...`;
-
-  if (isNearBottom()) chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function addStreamToolResult(result) {
-  let wrapper = document.getElementById('chat-streaming');
-  if (!wrapper) return;
-
-  const groupBody = wrapper.querySelector('.chat-tool-group-body');
-  if (groupBody) {
-    const toolEl = createToolResultBlock({ content: result.content || '', toolCallId: result.toolCallId || '' });
-    if (result.error) {
-      toolEl.classList.add('chat-tool-call--error');
-    }
-    groupBody.appendChild(toolEl);
-  }
-
-  // Update label with summary of all tool names so far
-  if (streamingToolGroup) {
-    const callBlocks = streamingToolGroup.querySelectorAll('.chat-tool-call-header .chat-tool-call-name');
-    const names = [...callBlocks].map(el => el.textContent.split('(')[0].trim());
-    const uniqueNames = [...new Set(names)];
-    const summary = uniqueNames.length <= 3
-      ? uniqueNames.join(', ')
-      : `${uniqueNames.slice(0, 3).join(', ')} +${uniqueNames.length - 3} more`;
-    const count = streamingToolGroup.querySelectorAll('.chat-tool-call').length;
-    const label = streamingToolGroup.querySelector('.chat-tool-group-label');
-    label.textContent = `🔧 ${count} tool call${count > 1 ? 's' : ''}: ${summary}`;
-  }
-
   if (isNearBottom()) chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
@@ -6264,7 +5093,6 @@ async function sendChat() {
   }
 
   chatLoading = true;
-  streamingToolGroup = null;
   chatSendBtn.classList.add('chat-send-btn--hidden');
   chatStopBtn.classList.add('chat-stop-btn--visible');
   chatInput.value = '';
@@ -6278,11 +5106,10 @@ async function sendChat() {
   // Show typing indicator
   addTypingIndicator();
 
-  const model = document.getElementById('chat-model').value || document.getElementById('chat-model').dataset.savedModel || '';
+  const model = document.getElementById('chat-model').textContent || '';
 
   // Abort controller for stop
   streamAbort = new AbortController();
-  streamingToolGroup = null;
 
   // Stop button handler
   chatStopBtn.onclick = () => {
@@ -6360,21 +5187,13 @@ async function sendChat() {
             case 'tool_call':
               addStreamToolCall({ function: { name: event.name, arguments: event.args } });
               break;
-            case 'tool_result':
-              addStreamToolResult({ name: event.name, toolCallId: event.toolCallId, content: event.content, error: event.error });
-              break;
             case 'done':
               finalizeStreamingBubble();
-              // Collapse tool group after streaming ends
-              if (streamingToolGroup) {
-                const groupBody = streamingToolGroup.querySelector('.chat-tool-group-body');
-                if (groupBody) groupBody.style.display = '';  // reset to CSS default (hidden)
-              }
               if (event.session) {
                 updateSessionTitle(event.session);
                 currentSessionId = event.sessionId || currentSessionId;
                 if (event.session.model) {
-                  updateModelBadge(activeProviderTab, event.session.model);
+                  document.getElementById('chat-model').textContent = event.session.model;
                 }
               }
               break;
@@ -6496,11 +5315,9 @@ function applyTheme(theme) {
   // Update active button
   themeButtons.forEach(b => b.classList.toggle('settings-theme-btn--active', b.dataset.themeVal === theme));
   // Re-init terminal if open so it picks up the new theme
-  if (state.terminalExpanded && state.activeTerminalTab) {
-    const activeTab = getTerminalById(state.activeTerminalTab);
-    if (activeTab) {
-      initSingleTerminal(activeTab.id);
-    }
+  if (xtermInstance && state.terminalExpanded) {
+    const wasConnected = termSocket && termSocket.connected;
+    initTerminal();
   }
 }
 
@@ -6522,37 +5339,10 @@ const btnSettings = document.getElementById('btn-settings');
 const settingsClose = document.getElementById('settings-close');
 const tabCloud = document.getElementById('tab-cloud');
 const tabLocal = document.getElementById('tab-local');
-const tabOpenAICompat = document.getElementById('tab-openai-compat');
-const tabLlamaCpp = document.getElementById('tab-llama-cpp');
-const tabVllm = document.getElementById('tab-vllm');
-const tabLmStudio = document.getElementById('tab-lm-studio');
 const settingsCloud = document.getElementById('settings-cloud');
 const settingsLocal = document.getElementById('settings-local');
-const settingsOpenAICompat = document.getElementById('settings-openai-compat');
-const settingsLlamaCpp = document.getElementById('settings-llama-cpp');
-const settingsVllm = document.getElementById('settings-vllm');
-const settingsLmStudio = document.getElementById('settings-lm-studio');
 const settingsStatus = document.getElementById('settings-status');
 const settingsSave = document.getElementById('settings-save');
-const fetchModelsBtn = document.getElementById('fetch-models-btn');
-
-const providerSections = {
-  'ollama-cloud': settingsCloud,
-  'ollama-local': settingsLocal,
-  'openai-compat': settingsOpenAICompat,
-  'llama-cpp': settingsLlamaCpp,
-  'vllm': settingsVllm,
-  'lm-studio': settingsLmStudio,
-};
-
-const providerLabels = {
-  'ollama-cloud': 'Ollama Cloud',
-  'ollama-local': 'Ollama Local',
-  'openai-compat': 'OpenAI Compat',
-  'llama-cpp': 'llama.cpp',
-  'vllm': 'vLLM',
-  'lm-studio': 'LM Studio',
-};
 
 let activeProviderTab = 'ollama-cloud';
 
@@ -6571,57 +5361,18 @@ function setProviderTab(provider) {
   document.querySelectorAll('.settings-provider-tab').forEach(t => {
     t.classList.toggle('settings-provider-tab--active', t.dataset.provider === provider);
   });
-  // Show/hide the correct section
-  for (const [key, section] of Object.entries(providerSections)) {
-    if (section) section.style.display = key === provider ? '' : 'none';
-  }
+  settingsCloud.style.display = provider === 'ollama-cloud' ? '' : 'none';
+  settingsLocal.style.display = provider === 'ollama-local' ? '' : 'none';
   // Update active indicator label
   const label = document.getElementById('settings-active-label');
   const indicator = document.getElementById('settings-active-indicator');
-  label.textContent = 'Using ' + (providerLabels[provider] || provider);
+  if (provider === 'ollama-cloud') {
+    label.textContent = 'Using Ollama Cloud';
+  } else {
+    label.textContent = 'Using Ollama Local';
+  }
   // Reset connection status (will be checked on save/load)
   indicator.className = 'settings-active-indicator';
-}
-
-let availableModels = [];
-
-async function fetchAndPopulateModels() {
-  try {
-    const res = await fetch(`${API_BASE}/models`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const models = await res.json();
-    availableModels = models.map(m => m.id || m.name).filter(Boolean);
-
-    // Populate settings default-model picker
-    populateModelSelect(document.getElementById('default-model'), availableModels);
-
-    // Populate chat header model picker
-    populateModelSelect(document.getElementById('chat-model'), availableModels);
-  } catch (e) {
-    console.warn('Fetch models error:', e.message);
-  }
-}
-
-function populateModelSelect(selectEl, models) {
-  const currentVal = selectEl.value || selectEl.dataset.savedModel || '';
-  selectEl.innerHTML = '';
-  if (models.length === 0) {
-    const opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = '(no models — click ↻)';
-    selectEl.appendChild(opt);
-    return;
-  }
-  for (const id of models) {
-    const opt = document.createElement('option');
-    opt.value = id;
-    opt.textContent = id;
-    selectEl.appendChild(opt);
-  }
-  // Restore previously selected value if it exists in the list
-  if (currentVal && models.includes(currentVal)) {
-    selectEl.value = currentVal;
-  }
 }
 
 async function loadSettings() {
@@ -6629,31 +5380,18 @@ async function loadSettings() {
     const res = await fetch(`${API_BASE}/settings`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    document.getElementById('cloud-api-key').value = '';
-    document.getElementById('cloud-api-key').placeholder = data.ollamaCloud?.apiKey || '(not set)';
+    document.getElementById('cloud-api-key').value = data.ollamaCloud?.apiKey || '';
     document.getElementById('cloud-base-url').value = data.ollamaCloud?.baseUrl || '';
     document.getElementById('local-host').value = data.ollamaLocal?.host || 'localhost';
     document.getElementById('local-port').value = data.ollamaLocal?.port || 11434;
-    document.getElementById('openai-compat-api-key').value = '';
-    document.getElementById('openai-compat-api-key').placeholder = data.openaiCompat?.apiKey || '(not set)';
-    document.getElementById('openai-compat-base-url').value = data.openaiCompat?.baseUrl || '';
-    document.getElementById('llama-cpp-base-url').value = data.llamaCpp?.baseUrl || 'http://localhost:8080/v1';
-    document.getElementById('vllm-api-key').value = '';
-    document.getElementById('vllm-api-key').placeholder = data.vllm?.apiKey || '(not set)';
-    document.getElementById('vllm-base-url').value = data.vllm?.baseUrl || 'http://localhost:8000/v1';
-    document.getElementById('lm-studio-base-url').value = data.lmStudio?.baseUrl || 'http://localhost:1234/v1';
-    setProviderTab(data.activeProvider || 'ollama-cloud');
-    // Store default model so it can be restored after models are fetched
-    document.getElementById('default-model').dataset.savedModel = data.defaultModel || '';
-    document.getElementById('chat-model').dataset.savedModel = data.defaultModel || '';
-    // Fetch models to populate both pickers, then restore selection
-    fetchAndPopulateModels();
+    document.getElementById('default-model').value = data.defaultModel || '';
     if (data.defaultModel) {
-      updateModelBadge(data.activeProvider, data.defaultModel);
+      document.getElementById('chat-model').textContent = data.defaultModel;
     }
+    setProviderTab(data.activeProvider || 'ollama-cloud');
     // Backend is reachable — show connected status
     document.getElementById('settings-active-label').textContent =
-      'Using ' + (providerLabels[data.activeProvider] || data.activeProvider) + ' — connected';
+      (data.activeProvider === 'ollama-local' ? 'Using Ollama Local' : 'Using Ollama Cloud') + ' — connected';
     document.getElementById('settings-active-indicator').classList.remove('settings-active-indicator--err', 'settings-active-indicator--warn');
     settingsStatus.textContent = '';
     settingsStatus.className = 'settings-status';
@@ -6661,71 +5399,32 @@ async function loadSettings() {
     console.warn('Settings load error:', e.message);
     // Backend not reachable — load from localStorage
     const saved = JSON.parse(localStorage.getItem('cammander-settings') || '{}');
-    document.getElementById('cloud-api-key').value = '';
-    document.getElementById('cloud-api-key').placeholder = saved.ollamaCloud?.apiKey ? '••••' : '(not set)';
+    document.getElementById('cloud-api-key').value = saved.ollamaCloud?.apiKey || '';
     document.getElementById('cloud-base-url').value = saved.ollamaCloud?.baseUrl || 'https://ollama.com/v1';
     document.getElementById('local-host').value = saved.ollamaLocal?.host || 'localhost';
     document.getElementById('local-port').value = saved.ollamaLocal?.port || 11434;
-    document.getElementById('openai-compat-api-key').value = '';
-    document.getElementById('openai-compat-api-key').placeholder = saved.openaiCompat?.apiKey ? '••••' : '(not set)';
-    document.getElementById('openai-compat-base-url').value = saved.openaiCompat?.baseUrl || '';
-    document.getElementById('llama-cpp-base-url').value = saved.llamaCpp?.baseUrl || 'http://localhost:8080/v1';
-    document.getElementById('vllm-api-key').value = '';
-    document.getElementById('vllm-api-key').placeholder = saved.vllm?.apiKey ? '••••' : '(not set)';
-    document.getElementById('vllm-base-url').value = saved.vllm?.baseUrl || 'http://localhost:8000/v1';
-    document.getElementById('lm-studio-base-url').value = saved.lmStudio?.baseUrl || 'http://localhost:1234/v1';
-    document.getElementById('default-model').dataset.savedModel = saved.defaultModel || '';
-    document.getElementById('chat-model').dataset.savedModel = saved.defaultModel || '';
+    document.getElementById('default-model').value = saved.defaultModel || '';
     if (saved.defaultModel) {
-      updateModelBadge(saved.activeProvider, saved.defaultModel);
+      document.getElementById('chat-model').textContent = saved.defaultModel;
     }
     setProviderTab(saved.activeProvider || 'ollama-cloud');
     // Backend not reachable — show offline warning
     document.getElementById('settings-active-label').textContent =
-      'Using ' + (providerLabels[saved.activeProvider] || saved.activeProvider || 'Ollama Cloud') + ' — backend offline';
+      (saved.activeProvider === 'ollama-local' ? 'Using Ollama Local' : 'Using Ollama Cloud') + ' — backend offline';
     document.getElementById('settings-active-indicator').classList.add('settings-active-indicator--warn');
   }
 }
 
-function updateModelBadge(provider, model) {
-  const chatModel = document.getElementById('chat-model');
-  const settingsModel = document.getElementById('default-model');
-  if (model) {
-    chatModel.dataset.savedModel = model;
-    settingsModel.dataset.savedModel = model;
-    // If model list is already loaded, select it
-    if (chatModel.options.length > 0) chatModel.value = model;
-    if (settingsModel.options.length > 0) settingsModel.value = model;
-  }
-}
-
 async function saveSettings() {
-  const cloudKey = document.getElementById('cloud-api-key').value;
-  const openaiKey = document.getElementById('openai-compat-api-key').value;
-  const vllmKey = document.getElementById('vllm-api-key').value;
   const payload = {
     activeProvider: activeProviderTab,
     ollamaCloud: {
-      apiKey: cloudKey || undefined,
+      apiKey: document.getElementById('cloud-api-key').value,
       baseUrl: document.getElementById('cloud-base-url').value || 'https://ollama.com/v1',
     },
     ollamaLocal: {
       host: document.getElementById('local-host').value || 'localhost',
       port: parseInt(document.getElementById('local-port').value) || 11434,
-    },
-    openaiCompat: {
-      apiKey: openaiKey || undefined,
-      baseUrl: document.getElementById('openai-compat-base-url').value,
-    },
-    llamaCpp: {
-      baseUrl: document.getElementById('llama-cpp-base-url').value || 'http://localhost:8080/v1',
-    },
-    vllm: {
-      apiKey: vllmKey || undefined,
-      baseUrl: document.getElementById('vllm-base-url').value || 'http://localhost:8000/v1',
-    },
-    lmStudio: {
-      baseUrl: document.getElementById('lm-studio-base-url').value || 'http://localhost:1234/v1',
     },
     defaultModel: document.getElementById('default-model').value,
   };
@@ -6745,11 +5444,11 @@ async function saveSettings() {
     const indicator = document.getElementById('settings-active-indicator');
     indicator.classList.remove('settings-active-indicator--err', 'settings-active-indicator--warn');
     const label = document.getElementById('settings-active-label');
-    label.textContent = 'Using ' + (providerLabels[activeProviderTab] || activeProviderTab) + ' — connected';
+    label.textContent = activeProviderTab === 'ollama-cloud' ? 'Using Ollama Cloud — connected' : 'Using Ollama Local — connected';
 
     // Update the model badge in chat header
     if (payload.defaultModel) {
-      updateModelBadge(activeProviderTab, payload.defaultModel);
+      document.getElementById('chat-model').textContent = payload.defaultModel;
     }
   } catch (e) {
     settingsStatus.textContent = `Saved locally (${e.message})`;
@@ -6757,7 +5456,7 @@ async function saveSettings() {
     const indicator = document.getElementById('settings-active-indicator');
     indicator.classList.add('settings-active-indicator--warn');
     const label = document.getElementById('settings-active-label');
-    label.textContent = 'Using ' + (providerLabels[activeProviderTab] || activeProviderTab) + ' — offline (saved locally)';
+    label.textContent = activeProviderTab === 'ollama-cloud' ? 'Using Ollama Cloud — offline (saved locally)' : 'Using Ollama Local — offline (saved locally)';
     console.error('Settings save error:', e);
   }
 }
@@ -6769,30 +5468,7 @@ settingsOverlay.addEventListener('click', (e) => {
 });
 tabCloud.addEventListener('click', () => setProviderTab('ollama-cloud'));
 tabLocal.addEventListener('click', () => setProviderTab('ollama-local'));
-tabOpenAICompat.addEventListener('click', () => setProviderTab('openai-compat'));
-tabLlamaCpp.addEventListener('click', () => setProviderTab('llama-cpp'));
-tabVllm.addEventListener('click', () => setProviderTab('vllm'));
-tabLmStudio.addEventListener('click', () => setProviderTab('lm-studio'));
 settingsSave.addEventListener('click', saveSettings);
-fetchModelsBtn.addEventListener('click', fetchAndPopulateModels);
-
-// Sync model pickers: changing one updates the other and saves
-document.getElementById('chat-model').addEventListener('change', (e) => {
-  const model = e.target.value;
-  document.getElementById('default-model').value = model;
-  updateModelBadge(activeProviderTab, model);
-  // Auto-save model to backend
-  fetch(`${API_BASE}/settings`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ defaultModel: model }),
-  }).catch(() => {});
-});
-document.getElementById('default-model').addEventListener('change', (e) => {
-  const model = e.target.value;
-  document.getElementById('chat-model').value = model;
-  updateModelBadge(activeProviderTab, model);
-});
 
 // ── New File Modal ──────────────────────────────────────
 const newfileOverlay = document.getElementById('newfile-overlay');

@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { SettingsService } from '../settings/settings.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { ToolsService, ToolResult } from '../tools/tools.service';
+import { VaultService } from '../vault/vault.service';
 import { IsString, IsOptional } from 'class-validator';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -24,14 +25,36 @@ function loadSoul(workspaceRoot: string): string | null {
   return null;
 }
 
-function buildSystemPrompt(workspaceRoot: string): string {
+function buildSystemPrompt(workspaceRoot: string, vaultContext?: string): string {
   const workspaceName = workspaceRoot.split('/').pop() || 'workspace';
   const soul = loadSoul(workspaceRoot);
   const context = `\n\n---\nWorkspace: "${workspaceName}" at ${workspaceRoot}. All file paths and commands are relative to this project.\nCurrent date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.`;
-  if (soul) {
-    return soul + context;
+
+  const behaviorGuidelines = `
+## Behavioral Guidelines
+
+1. **Think Before Coding**: State assumptions explicitly. If multiple interpretations exist, present them. If something is unclear, stop and ask rather than guessing.
+
+2. **Simplicity First**: Write the minimum code that solves the problem. No speculative features, no abstractions for single-use code, no error handling for impossible scenarios. If you write 200 lines and it could be 50, rewrite it.
+
+3. **Surgical Changes**: Touch only what you must. Don't refactor adjacent code. Match existing style. Remove only imports/variables that YOUR changes made unused.
+
+4. **Goal-Driven Execution**: Define success criteria up front. For multi-step tasks, state a plan with verification checkpoints. Loop until verified — don't stop until the result is confirmed.
+
+5. **Tool Use**: Use tools proactively. Verify results after every change. Read files after writing. Run builds and tests. Prefer action over explanation.
+
+6. **No Premature Stops**: If a tool fails, try an alternative. Don't give up mid-task — deliver the result, not a status report.`;
+
+  let prompt = soul
+    ? soul + behaviorGuidelines + context
+    : `You are a helpful coding assistant inside the cammander IDE. You have tools to run commands, read and write files, search code, and list directories. Use them to help the user. Be concise and practical.` + behaviorGuidelines + context;
+
+  // Inject vault context — relevant project knowledge from the memory vault
+  if (vaultContext) {
+    prompt += `\n\n---\nProject Knowledge (from vault notes):\n${vaultContext}`;
   }
-  return `You are a helpful coding assistant inside the cammander IDE. You have tools to run commands, read and write files, search code, and list directories. Use them to help the user. Be concise and practical.` + context;
+
+  return prompt;
 }
 
 // Tool definitions for the LLM
@@ -111,9 +134,27 @@ const TOOL_DEFINITIONS = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'vault_note',
+      description: 'Create or update a note in the project memory vault. Use this to save important decisions, pitfalls, conventions, or architectural knowledge that should persist across sessions. Tags help with retrieval.',
+      parameters: {
+        type: 'object',
+        required: ['title', 'content'],
+        properties: {
+          title: { type: 'string', description: 'Note title (e.g. "Terminal Socket.IO Setup", "API Key Pitfall")' },
+          content: { type: 'string', description: 'Markdown content of the note' },
+          tags: { type: 'array', items: { type: 'string' }, description: 'Tags for categorization (e.g. ["architecture", "pitfall", "config"])' },
+          action: { type: 'string', enum: ['create', 'update'], description: '"create" (default) to make a new note, "update" to modify an existing one by ID' },
+          id: { type: 'string', description: 'Existing note ID to update (required when action=update)' },
+        },
+      },
+    },
+  },
 ];
 
-const MAX_TOOL_ROUNDS = 8;
+const MAX_TOOL_ROUNDS = 30;
 
 class ChatRequestDto {
   @IsString()
@@ -139,6 +180,7 @@ export class ChatController {
     private settings: SettingsService,
     private sessions: SessionsService,
     private tools: ToolsService,
+    private vault: VaultService,
     private config: ConfigService,
   ) {}
 
@@ -161,11 +203,17 @@ export class ChatController {
     const workspaceRoot: string = dto.workspaceRoot || this.config.get<string>('WORKSPACE_ROOT', '/tmp') || '/tmp';
     this.tools.setWorkspaceRoot(workspaceRoot);
 
+    // Fetch relevant vault context for this query + workspace
+    const vaultNotes = this.vault.contextRelevant(dto.message, workspaceRoot);
+    const vaultContext = vaultNotes.length > 0
+      ? vaultNotes.map(n => `## ${n.title}\nTags: ${n.tags.join(', ') || 'none'}\n${n.content}`).join('\n\n')
+      : undefined;
+
     // Build messages array for the LLM
     const messages: any[] = [
       {
         role: 'system',
-        content: buildSystemPrompt(workspaceRoot),
+        content: buildSystemPrompt(workspaceRoot, vaultContext),
       },
     ];
 
@@ -192,16 +240,43 @@ export class ChatController {
     let baseUrl: string;
     let headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
-    if (provider === 'ollama-cloud') {
-      baseUrl = s.ollamaCloud.baseUrl.replace(/\/$/, '');
-      if (s.ollamaCloud.apiKey) {
-        headers['Authorization'] = `Bearer ${s.ollamaCloud.apiKey}`;
-      }
-    } else {
-      baseUrl = `http://${s.ollamaLocal.host}:${s.ollamaLocal.port}/v1`;
+    switch (provider) {
+      case 'ollama-cloud':
+        baseUrl = s.ollamaCloud.baseUrl.replace(/\/$/, '');
+        if (s.ollamaCloud.apiKey) {
+          headers['Authorization'] = `Bearer ${s.ollamaCloud.apiKey}`;
+        }
+        break;
+      case 'ollama-local':
+        baseUrl = `http://${s.ollamaLocal.host}:${s.ollamaLocal.port}/v1`;
+        break;
+      case 'openai-compat':
+        baseUrl = s.openaiCompat.baseUrl.replace(/\/$/, '');
+        if (s.openaiCompat.apiKey) {
+          headers['Authorization'] = `Bearer ${s.openaiCompat.apiKey}`;
+        }
+        break;
+      case 'llama-cpp':
+        baseUrl = s.llamaCpp.baseUrl.replace(/\/$/, '');
+        break;
+      case 'vllm':
+        baseUrl = s.vllm.baseUrl.replace(/\/$/, '');
+        if (s.vllm.apiKey) {
+          headers['Authorization'] = `Bearer ${s.vllm.apiKey}`;
+        }
+        break;
+      case 'lm-studio':
+        baseUrl = s.lmStudio.baseUrl.replace(/\/$/, '');
+        break;
+      default:
+        baseUrl = s.ollamaCloud.baseUrl.replace(/\/$/, '');
+        if (s.ollamaCloud.apiKey) {
+          headers['Authorization'] = `Bearer ${s.ollamaCloud.apiKey}`;
+        }
     }
 
     const fetchUrl = `${baseUrl}/chat/completions`;
+    const LLM_TIMEOUT_MS = 300_000; // 5 minutes per LLM request — long enough for deep reasoning
 
     // Multi-turn tool calling loop
     for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
@@ -220,6 +295,7 @@ export class ChatController {
             stream: false,
           }),
           redirect: 'follow',
+          signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
         });
       } catch (fetchErr: any) {
         this.logger.error(`Fetch failed: ${fetchErr.message}`);
@@ -283,7 +359,13 @@ export class ChatController {
           fnArgs = {};
         }
 
-        const result: ToolResult = await this.tools.execute(fnName, fnArgs, tc.id);
+        // Handle vault_note tool internally (not via ToolsService)
+        let result: ToolResult;
+        if (fnName === 'vault_note') {
+          result = this.executeVaultNote(fnArgs, tc.id);
+        } else {
+          result = await this.tools.execute(fnName, fnArgs, tc.id);
+        }
 
         // Save tool result to session
         this.sessions.addMessage(session.id, {
@@ -341,11 +423,17 @@ export class ChatController {
     const workspaceRoot: string = dto.workspaceRoot || this.config.get<string>('WORKSPACE_ROOT', '/tmp') || '/tmp';
     this.tools.setWorkspaceRoot(workspaceRoot);
 
+    // Fetch relevant vault context for this query + workspace
+    const vaultNotes = this.vault.contextRelevant(dto.message, workspaceRoot);
+    const vaultContext = vaultNotes.length > 0
+      ? vaultNotes.map(n => `## ${n.title}\nTags: ${n.tags.join(', ') || 'none'}\n${n.content}`).join('\n\n')
+      : undefined;
+
     // Build messages
     const messages: any[] = [
       {
         role: 'system',
-        content: buildSystemPrompt(workspaceRoot),
+        content: buildSystemPrompt(workspaceRoot, vaultContext),
       },
     ];
 
@@ -371,16 +459,43 @@ export class ChatController {
     let baseUrl: string;
     let headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
-    if (provider === 'ollama-cloud') {
-      baseUrl = s.ollamaCloud.baseUrl.replace(/\/$/, '');
-      if (s.ollamaCloud.apiKey) {
-        headers['Authorization'] = `Bearer ${s.ollamaCloud.apiKey}`;
-      }
-    } else {
-      baseUrl = `http://${s.ollamaLocal.host}:${s.ollamaLocal.port}/v1`;
+    switch (provider) {
+      case 'ollama-cloud':
+        baseUrl = s.ollamaCloud.baseUrl.replace(/\/$/, '');
+        if (s.ollamaCloud.apiKey) {
+          headers['Authorization'] = `Bearer ${s.ollamaCloud.apiKey}`;
+        }
+        break;
+      case 'ollama-local':
+        baseUrl = `http://${s.ollamaLocal.host}:${s.ollamaLocal.port}/v1`;
+        break;
+      case 'openai-compat':
+        baseUrl = s.openaiCompat.baseUrl.replace(/\/$/, '');
+        if (s.openaiCompat.apiKey) {
+          headers['Authorization'] = `Bearer ${s.openaiCompat.apiKey}`;
+        }
+        break;
+      case 'llama-cpp':
+        baseUrl = s.llamaCpp.baseUrl.replace(/\/$/, '');
+        break;
+      case 'vllm':
+        baseUrl = s.vllm.baseUrl.replace(/\/$/, '');
+        if (s.vllm.apiKey) {
+          headers['Authorization'] = `Bearer ${s.vllm.apiKey}`;
+        }
+        break;
+      case 'lm-studio':
+        baseUrl = s.lmStudio.baseUrl.replace(/\/$/, '');
+        break;
+      default:
+        baseUrl = s.ollamaCloud.baseUrl.replace(/\/$/, '');
+        if (s.ollamaCloud.apiKey) {
+          headers['Authorization'] = `Bearer ${s.ollamaCloud.apiKey}`;
+        }
     }
 
     const fetchUrl = `${baseUrl}/chat/completions`;
+    const LLM_TIMEOUT_MS = 300_000; // 5 minutes per LLM request
 
     try {
       // Multi-turn tool calling loop with streaming
@@ -398,6 +513,7 @@ export class ChatController {
             stream: true,
           }),
           redirect: 'follow',
+          signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
         });
 
         if (!fetchRes.ok) {
@@ -535,7 +651,16 @@ export class ChatController {
           let fnArgs: Record<string, any> = {};
           try { fnArgs = JSON.parse(tc.args); } catch { fnArgs = {}; }
 
-          const result: ToolResult = await this.tools.execute(tc.name, fnArgs, tc.id);
+          // Handle vault_note tool internally (not via ToolsService)
+          let result: ToolResult;
+          if (tc.name === 'vault_note') {
+            result = this.executeVaultNote(fnArgs, tc.id);
+          } else {
+            result = await this.tools.execute(tc.name, fnArgs, tc.id);
+          }
+
+          // Send tool result to frontend so user sees output
+          send({ type: 'tool_result', name: tc.name, toolCallId: tc.id, content: result.content, error: result.error });
 
           this.sessions.addMessage(session.id, {
             role: 'tool',
@@ -568,6 +693,42 @@ export class ChatController {
         content: `⚠ Cannot reach ${provider}: ${fetchErr.message}`,
       });
       res.end();
+    }
+  }
+
+  /** Handle vault_note tool calls — create or update vault notes during chat */
+  private executeVaultNote(args: Record<string, any>, toolCallId: string): ToolResult {
+    try {
+      const action = args.action || 'create';
+      const title = args.title;
+      const content = args.content;
+
+      if (!title) {
+        return { name: 'vault_note', toolCallId, content: JSON.stringify({ error: true, message: 'title is required' }), error: true };
+      }
+
+      if (action === 'update' && args.id) {
+        const updated = this.vault.update(args.id, {
+          title,
+          content,
+          tags: args.tags,
+        });
+        if (!updated) {
+          return { name: 'vault_note', toolCallId, content: JSON.stringify({ error: true, message: `Note '${args.id}' not found` }), error: true };
+        }
+        return { name: 'vault_note', toolCallId, content: JSON.stringify({ ok: true, id: updated.id, title: updated.title, message: `Updated note: ${updated.title}` }) };
+      }
+
+      // Create new note
+      const note = this.vault.create({
+        title,
+        content,
+        tags: args.tags,
+      });
+      return { name: 'vault_note', toolCallId, content: JSON.stringify({ ok: true, id: note.id, title: note.title, message: `Created note: ${note.title}` }) };
+    } catch (err: any) {
+      this.logger.error(`vault_note error: ${err.message}`);
+      return { name: 'vault_note', toolCallId, content: JSON.stringify({ error: true, message: err.message }), error: true };
     }
   }
 }

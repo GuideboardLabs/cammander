@@ -8,12 +8,25 @@
 
 .file-tree-header {
   padding: 6px 12px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #a6adc8;
-  border-bottom: 1px solid #313244;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  border-bottom: 1px solid var(--border-color);
+  background: linear-gradient(180deg, rgba(38,40,56,0.3) 0%, transparent 100%);
+  position: relative;
+}
+
+.file-tree-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--teal), var(--orange), transparent);
+  opacity: 0.4;
 }
 
 .file-tree ul {
@@ -28,38 +41,44 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #6c7086;
+  color: var(--ink-muted);
   text-align: center;
   padding: 24px;
+  gap: 8px;
 }
 
 .file-tree-hint {
   font-size: 12px;
   margin-top: 4px;
-  color: #585b70;
+  color: var(--ink-faint);
 }
 
 .tree-node {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  padding-right: 12px;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-radius: 3px;
-  transition: background-color 0.1s;
+  border-radius: 6px;
+  margin: 0 4px;
+  transition: all var(--dur-fast) var(--ease-smooth);
+  font-size: 12.5px;
 }
 
 .tree-node:hover {
-  background-color: #313244;
+  background: linear-gradient(90deg, rgba(249, 115, 22, 0.08) 0%, rgba(20, 184, 166, 0.04) 100%);
+  color: var(--c-coral);
+  transform: translateX(2px);
 }
 
 .tree-node--active {
-  background-color: #45475a;
-  color: #f5c2e7;
+  background: linear-gradient(90deg, rgba(20, 184, 166, 0.15) 0%, rgba(249, 115, 22, 0.08) 100%);
+  color: var(--teal);
+  border-left: 2px solid var(--teal);
+  box-shadow: 0 0 14px var(--teal-glow);
 }
 
 .tree-icon {
@@ -67,6 +86,12 @@
   width: 14px;
   flex-shrink: 0;
   text-align: center;
+  color: var(--ink-faint);
+  transition: color var(--dur-fast);
+}
+
+.tree-node:hover .tree-icon {
+  color: var(--c-coral);
 }
 
 .tree-label {

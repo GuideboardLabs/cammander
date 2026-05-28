@@ -12,6 +12,7 @@ export interface ToolResult {
 }
 
 const MAX_OUTPUT = 10000; // chars
+const BASH_TIMEOUT_MS = 120_000; // 2 minutes for bash commands
 
 @Injectable()
 export class ToolsService {
@@ -61,7 +62,7 @@ export class ToolsService {
 
   private bash(command: string): Promise<string> {
     return new Promise((resolve) => {
-      exec(command, { cwd: this.workspaceRoot, timeout: 30000, maxBuffer: 1024 * 1024 }, (err, stdout, stderr) => {
+      exec(command, { cwd: this.workspaceRoot, timeout: BASH_TIMEOUT_MS, maxBuffer: 1024 * 1024 }, (err, stdout, stderr) => {
         let out = '';
         if (stdout) out += stdout;
         if (stderr) out += (out ? '\n' : '') + stderr;

@@ -10,6 +10,20 @@ export interface AppSettings {
     host: string;
     port: number;
   };
+  openaiCompat: {
+    apiKey: string;
+    baseUrl: string;
+  };
+  llamaCpp: {
+    baseUrl: string;
+  };
+  vllm: {
+    baseUrl: string;
+    apiKey: string;
+  };
+  lmStudio: {
+    baseUrl: string;
+  };
   defaultModel: string;
 }
 
@@ -22,6 +36,20 @@ export const DEFAULT_SETTINGS: AppSettings = {
   ollamaLocal: {
     host: 'localhost',
     port: 11434,
+  },
+  openaiCompat: {
+    apiKey: '',
+    baseUrl: '',
+  },
+  llamaCpp: {
+    baseUrl: 'http://localhost:8080',
+  },
+  vllm: {
+    baseUrl: 'http://localhost:8000',
+    apiKey: '',
+  },
+  lmStudio: {
+    baseUrl: 'http://localhost:1234',
   },
   defaultModel: '',
 };

@@ -38,18 +38,35 @@
 }
 
 .editor-tab:hover {
-  background-color: #313244;
+  background: rgba(20, 184, 166, 0.08);
   color: #cdd6f4;
 }
 
 .editor-tab--active {
-  background-color: #1e1e2e;
+  background: linear-gradient(180deg, rgba(20, 184, 166, 0.12) 0%, rgba(249, 115, 22, 0.08) 100%);
   color: #cdd6f4;
-  border-bottom: 2px solid #cba6f7;
+  border-bottom: none;
+}
+
+.editor-tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--c-teal), var(--c-coral), var(--c-orange));
+  border-radius: 2px 2px 0 0;
+  animation: tabGlow var(--dur-slow) var(--ease-smooth) forwards;
+}
+
+@keyframes tabGlow {
+  from { opacity: 0; transform: scaleX(0.3); }
+  to   { opacity: 1; transform: scaleX(1); }
 }
 
 .editor-tab--active:hover {
-  background-color: #1e1e2e;
+  background: linear-gradient(180deg, rgba(20, 184, 166, 0.18) 0%, rgba(249, 115, 22, 0.12) 100%);
 }
 
 .editor-tab-label {

@@ -144,6 +144,16 @@ export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
   }
 
+  @SubscribeMessage('terminal:list')
+  handleList(client: Socket) {
+    // Return all active session slot IDs so frontend can reattach on page refresh
+    const slots: string[] = [];
+    for (const [slotId, session] of this.sessions.entries()) {
+      slots.push(slotId);
+    }
+    client.emit('terminal:slots', { slots });
+  }
+
   @SubscribeMessage('terminal:kill')
   handleKill(client: Socket, payload?: { slot?: string }) {
     const slotId = payload?.slot || this.clientSlot.get(client.id);

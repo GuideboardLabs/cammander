@@ -1,6 +1,6 @@
 export interface AIProvider {
   name: string;
-  type: 'ollama-local' | 'ollama-cloud';
+  type: 'ollama-local' | 'ollama-cloud' | 'openai-compat' | 'llama-cpp' | 'vllm' | 'lm-studio';
   chat(request: ProviderChatRequest): AsyncIterable<string>;
   listModels(): Promise<ModelDescriptor[]>;
 }

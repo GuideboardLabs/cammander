@@ -24,6 +24,8 @@ const initialState: WorkspaceState = {
   aiContext: DEFAULT_AI_CONTEXT,
   spreadsheetData: new Map(),
   webApps: [],
+  terminalTabs: [],
+  activeTerminal: '',
 };
 
 export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): WorkspaceState {
@@ -208,6 +210,40 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
 
     case 'SET_WEB_APPS':
       return { ...state, webApps: action.apps };
+
+    // ── Terminal tab actions ──
+
+    case 'ADD_TERMINAL_TAB': {
+      if (state.terminalTabs.length >= 4) return state;
+      if (state.terminalTabs.some((t) => t.slotId === action.tab.slotId)) return state;
+      return {
+        ...state,
+        terminalTabs: [...state.terminalTabs, action.tab],
+        activeTerminal: action.tab.slotId,
+      };
+    }
+
+    case 'REMOVE_TERMINAL_TAB': {
+      const newTabs = state.terminalTabs.filter((t) => t.slotId !== action.slotId);
+      let nextActive = state.activeTerminal;
+      if (state.activeTerminal === action.slotId) {
+        nextActive = newTabs.length > 0 ? newTabs[newTabs.length - 1]!.slotId : '';
+      }
+      return { ...state, terminalTabs: newTabs, activeTerminal: nextActive };
+    }
+
+    case 'SET_ACTIVE_TERMINAL':
+      return { ...state, activeTerminal: action.slotId };
+
+    case 'UPDATE_TERMINAL_TAB': {
+      const updated = state.terminalTabs.map((t) =>
+        t.slotId === action.slotId ? { ...t, ...action.updates } : t,
+      );
+      return { ...state, terminalTabs: updated };
+    }
+
+    case 'SET_TERMINAL_TABS':
+      return { ...state, terminalTabs: action.tabs, activeTerminal: action.tabs.length > 0 ? action.tabs[action.tabs.length - 1]!.slotId : '' };
 
     case 'RESTORE_STATE':
       return { ...action.state };

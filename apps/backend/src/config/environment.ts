@@ -1,9 +1,10 @@
+import * as path from 'path';
 import { registerAs } from '@nestjs/config';
 
 export const environment = {
   PORT: parseInt(process.env.PORT || '3000', 10),
   CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
-  DATA_DIR: process.env.DATA_DIR || './data',
+  DATA_DIR: process.env.DATA_DIR || path.join(process.env.WORKSPACE_ROOT || '/home/sc/cammander', '.cammander', 'data'),
   OLLAMA_LOCAL_BASE_URL: process.env.OLLAMA_LOCAL_BASE_URL || 'http://localhost:11434',
   OLLAMA_CLOUD_BASE_URL: process.env.OLLAMA_CLOUD_BASE_URL || '',
   OLLAMA_CLOUD_API_KEY: process.env.OLLAMA_CLOUD_API_KEY || '',

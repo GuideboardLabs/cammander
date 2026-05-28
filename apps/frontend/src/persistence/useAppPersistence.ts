@@ -23,7 +23,8 @@ import {
   type PersistenceLifecycleOptions,
 } from './lifecycle';
 import type { PersistedWorkspaceState } from '@/fileStatePersistence';
-import type { AIContext } from '@/types';
+import { loadTerminalState, saveTerminalState } from '@/fileStatePersistence';
+import type { AIContext, TerminalTab } from '@/types';
 
 export interface UseAppPersistenceOptions extends PersistenceLifecycleOptions {
   /** Whether to auto-restore on mount (default: true) */
@@ -129,6 +130,8 @@ export function useAppPersistence(options: UseAppPersistenceOptions = {}): UseAp
             aiContext: { updatedAt: new Date().toISOString() },
             spreadsheetData: new Map(),
             webApps: [],
+            terminalTabs: [],
+            activeTerminal: '',
           },
         });
       }
@@ -147,6 +150,21 @@ export function useAppPersistence(options: UseAppPersistenceOptions = {}): UseAp
           type: 'SET_AI_CONTEXT',
           context: restored.aiContext,
         });
+      }
+
+      // ── Restore terminal tabs ───────────────────────────────────────
+      const savedTerminals = loadTerminalState();
+      if (savedTerminals && savedTerminals.tabs.length > 0) {
+        const tabs: TerminalTab[] = savedTerminals.tabs.map((t) => ({
+          slotId: t.slotId,
+          label: t.label,
+          connected: false,
+          pid: null,
+        }));
+        dispatch({ type: 'SET_TERMINAL_TABS', tabs });
+        if (savedTerminals.activeTerminal) {
+          dispatch({ type: 'SET_ACTIVE_TERMINAL', slotId: savedTerminals.activeTerminal });
+        }
       }
 
       if (restored.errors.length > 0) {
@@ -239,6 +257,15 @@ export function useAppPersistence(options: UseAppPersistenceOptions = {}): UseAp
 
     prevAIContextRef.current = state.aiContext;
   }, [state.aiContext, loading]);
+
+  // ── Persist terminal tab changes ──────────────────────────────────────
+  useEffect(() => {
+    if (loading) return;
+    saveTerminalState(
+      state.terminalTabs.map((t) => ({ slotId: t.slotId, label: t.label })),
+      state.activeTerminal,
+    );
+  }, [state.terminalTabs, state.activeTerminal, loading]);
 
   // ── Beforeunload: flush pending writes ────────────────────────────────
   useEffect(() => {

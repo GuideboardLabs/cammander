@@ -47,6 +47,7 @@ export interface PersistedWorkspaceState {
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const STORAGE_KEY = 'workspace-state';
+const TERMINAL_TABS_KEY = 'cammander:terminal-tabs';
 const SCHEMA_VERSION = 1;
 const DEBOUNCE_MS = 500;
 
@@ -236,4 +237,57 @@ export function createEmptyWorkspaceState(): PersistedWorkspaceState {
     files: [],
     activeTab: '',
   };
+}
+
+// ── Terminal tab persistence ─────────────────────────────────────────────────
+
+export interface PersistedTerminalTab {
+  slotId: string;
+  label: string;
+}
+
+export interface PersistedTerminalState {
+  tabs: PersistedTerminalTab[];
+  activeTerminal: string;
+}
+
+function isValidTerminalState(data: unknown): data is PersistedTerminalState {
+  if (!data || typeof data !== 'object') return false;
+  const obj = data as Record<string, unknown>;
+  return Array.isArray(obj.tabs) && typeof obj.activeTerminal === 'string';
+}
+
+/**
+ * Save terminal tab layout to localStorage.
+ * The actual PTY sessions are persistent server-side — we just save
+ * the slot IDs and labels so we can reattach on page refresh.
+ */
+export function saveTerminalState(tabs: PersistedTerminalTab[], activeTerminal: string): void {
+  try {
+    const state: PersistedTerminalState = { tabs, activeTerminal };
+    localStorage.setItem(TERMINAL_TABS_KEY, JSON.stringify(state));
+  } catch {
+    // localStorage full or unavailable — non-critical
+  }
+}
+
+/**
+ * Load terminal tab layout from localStorage.
+ * Returns null if nothing saved or data corrupted.
+ */
+export function loadTerminalState(): PersistedTerminalState | null {
+  try {
+    const raw = localStorage.getItem(TERMINAL_TABS_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!isValidTerminalState(data)) {
+      localStorage.removeItem(TERMINAL_TABS_KEY);
+      return null;
+    }
+    // Cap at 4 tabs
+    data.tabs = data.tabs.slice(0, 4);
+    return data;
+  } catch {
+    return null;
+  }
 }

@@ -3,6 +3,7 @@
 .webapps-panel {
   border-top: 1px solid var(--border-color, #2a2a4a);
   font-size: 0.8rem;
+  background: linear-gradient(180deg, rgba(20, 184, 166, 0.03) 0%, transparent 8px);
 }
 
 .webapps-header {

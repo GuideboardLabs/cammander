@@ -12,7 +12,7 @@ export class SessionsService {
   private filePath: string;
 
   constructor(private config: ConfigService) {
-    const dataDir = this.config.get<string>('DATA_DIR', './data');
+    const dataDir = this.config.get<string>('DATA_DIR') || path.join(this.config.get<string>('WORKSPACE_ROOT') || '/home/sc/cammander', '.cammander', 'data');
     this.filePath = path.resolve(dataDir, 'sessions.json');
     this.load();
   }

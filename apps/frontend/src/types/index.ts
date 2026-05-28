@@ -111,6 +111,19 @@ export interface AIContext {
   updatedAt: string;
 }
 
+// ── Terminal tab types ──
+
+export interface TerminalTab {
+  /** Unique slot ID matching backend session key */
+  slotId: string;
+  /** Display label (e.g. "Terminal 1") */
+  label: string;
+  /** Whether this terminal is connected */
+  connected: boolean;
+  /** PID of the backend PTY process */
+  pid: number | null;
+}
+
 // ── Workspace actions ──
 
 export type WorkspaceAction =
@@ -141,7 +154,13 @@ export type WorkspaceAction =
   | { type: 'SET_SPREADSHEET_DATA'; filePath: string; data: SpreadsheetData }
   | { type: 'SET_ACTIVE_SHEET'; filePath: string; sheetName: string }
   // Web app actions
-  | { type: 'SET_WEB_APPS'; apps: WebApp[] };
+  | { type: 'SET_WEB_APPS'; apps: WebApp[] }
+  // Terminal tab actions
+  | { type: 'ADD_TERMINAL_TAB'; tab: TerminalTab }
+  | { type: 'REMOVE_TERMINAL_TAB'; slotId: string }
+  | { type: 'SET_ACTIVE_TERMINAL'; slotId: string }
+  | { type: 'UPDATE_TERMINAL_TAB'; slotId: string; updates: Partial<TerminalTab> }
+  | { type: 'SET_TERMINAL_TABS'; tabs: TerminalTab[] };
 
 // ── Workspace state ──
 
@@ -162,4 +181,8 @@ export interface WorkspaceState {
   spreadsheetData: Map<string, SpreadsheetData>;
   /** Available web apps for current project */
   webApps: WebApp[];
+  /** Terminal tabs (up to 4) */
+  terminalTabs: TerminalTab[];
+  /** Active terminal slot ID */
+  activeTerminal: string;
 }

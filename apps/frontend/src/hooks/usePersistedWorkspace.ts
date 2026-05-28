@@ -82,6 +82,8 @@ export function usePersistedWorkspace() {
           aiContext: { updatedAt: new Date().toISOString() },
           spreadsheetData: new Map(),
           webApps: [],
+          terminalTabs: [],
+          activeTerminal: '',
         },
       });
     })();
