@@ -188,7 +188,7 @@ export class ChatController {
   async chat(@Body() dto: ChatRequestDto) {
     const s = this.settings.getRaw();
     const provider = s.activeProvider;
-    const model = dto.model || s.defaultModel || 'deepseek-v4-flash';
+    const model = dto.model || s.defaultModel || 'deepseek-v4-pro';
     let session = this.sessions.get(dto.sessionId);
 
     if (!session) {
@@ -397,7 +397,7 @@ export class ChatController {
   async chatStream(@Body() dto: ChatRequestDto, @Res() res: ExpressResponse) {
     const s = this.settings.getRaw();
     const provider = s.activeProvider;
-    const model = dto.model || s.defaultModel || 'deepseek-v4-flash';
+    const model = dto.model || s.defaultModel || 'deepseek-v4-pro';
 
     // SSE headers
     res.setHeader('Content-Type', 'text/event-stream');

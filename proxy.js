@@ -6,7 +6,7 @@ const httpProxy = require('http-proxy');
 const STATIC_PORT = 3001;
 const BACKEND_PORT = 3002;
 const BACKEND_HOST = '127.0.0.1';
-const STATIC_DIR = '/home/sc/cammander';
+const STATIC_DIR = '/home/sc/Documents/cammander';
 
 const MIME = {
   '.html': 'text/html',
