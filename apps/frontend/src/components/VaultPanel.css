@@ -2,29 +2,29 @@
 
 /* CSS Variables for vault theming (orange pop on teal base) */
 :root {
-  --vault-teal: #14b8a6;
-  --vault-teal-dark: #0d9488;
-  --vault-teal-glow: rgba(20, 184, 166, 0.15);
-  --vault-teal-light: rgba(20, 184, 166, 0.08);
-  --vault-orange: #f97316;
-  --vault-orange-dark: #ea580c;
-  --vault-orange-glow: rgba(249, 115, 22, 0.15);
-  --vault-orange-light: rgba(249, 115, 22, 0.08);
-  --vault-bg: var(--bg-secondary, #181825);
-  --vault-bg-elevated: var(--bg-tertiary, #1e1e2e);
-  --vault-bg-card: var(--bg-card, #252836);
+  --vault-teal: var(--teal, #14b8a6);
+  --vault-teal-dark: var(--teal-dark, #0d9488);
+  --vault-teal-glow: var(--teal-glow, rgba(20, 184, 166, 0.15));
+  --vault-teal-light: var(--teal-light, rgba(20, 184, 166, 0.08));
+  --vault-orange: var(--orange, #f97316);
+  --vault-orange-dark: var(--orange-dark, #ea580c);
+  --vault-orange-glow: var(--orange-glow, rgba(249, 115, 22, 0.15));
+  --vault-orange-light: var(--orange-light, rgba(249, 115, 22, 0.08));
+  --vault-bg: var(--bg-primary, #181825);
+  --vault-bg-elevated: var(--bg-secondary, #1e1e2e);
+  --vault-bg-card: var(--bg-card, #2a2d3e);
   --vault-border: var(--border-color, #313244);
-  --vault-border-active: var(--bg-elevated, #45475a);
-  --vault-ink: var(--text-primary, #cdd6f4);
-  --vault-ink-muted: var(--text-muted, #6c7086);
-  --vault-ink-faint: var(--text-secondary, #585b70);
+  --vault-border-active: var(--border-active, #45475a);
+  --vault-ink: var(--ink-primary, #cdd6f4);
+  --vault-ink-muted: var(--ink-muted, #7f85a3);
+  --vault-ink-faint: var(--ink-faint, #585b70);
   --vault-danger: #ef4444;
   --vault-danger-glow: rgba(239, 68, 68, 0.15);
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur-fast: 180ms;
-  --dur-medium: 280ms;
-  --dur-slow: 450ms;
+  --ease-bounce: var(--ease-bounce, cubic-bezier(0.34, 1.56, 0.64, 1));
+  --ease-smooth: var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1));
+  --dur-fast: var(--dur-fast, 160ms);
+  --dur-medium: var(--dur-medium, 260ms);
+  --dur-slow: var(--dur-slow, 450ms);
 }
 
 .vault-panel {
@@ -111,20 +111,27 @@
   height: 48px;
   border-bottom: 1px solid var(--vault-border);
   flex-shrink: 0;
-  background: linear-gradient(90deg, var(--vault-bg) 0%, var(--vault-bg-elevated) 100%);
+  background: linear-gradient(90deg, var(--vault-bg) 0%, rgba(20,184,166,0.06) 40%, rgba(249,115,22,0.04) 100%);
   position: relative;
   overflow: hidden;
 }
 
-.vault-header::after {
+/* Animated gradient accent line at bottom of header */
+.vault-header::before {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, var(--vault-teal) 30%, var(--vault-orange) 70%, transparent 100%);
-  opacity: 0.4;
+  left: -100%;
+  width: 300%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--vault-teal) 0%, var(--vault-orange) 50%, var(--vault-teal) 100%);
+  animation: vaultHeaderShimmer 3s ease-in-out infinite;
+}
+
+@keyframes vaultHeaderShimmer {
+  0%   { transform: translateX(0); }
+  50%  { transform: translateX(33%); }
+  100% { transform: translateX(0); }
 }
 
 .vault-header-icon {
@@ -207,6 +214,12 @@
   border-color: var(--vault-teal);
   background: var(--vault-bg);
   box-shadow: 0 0 0 3px var(--vault-teal-glow), inset 0 1px 2px rgba(0,0,0,0.1);
+  animation: vaultSearchPulse 2s ease-in-out infinite;
+}
+
+@keyframes vaultSearchPulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--vault-teal-glow), inset 0 1px 2px rgba(0,0,0,0.1); }
+  50%      { box-shadow: 0 0 0 5px var(--vault-teal-glow), 0 0 12px var(--vault-orange-glow), inset 0 1px 2px rgba(0,0,0,0.1); }
 }
 
 .vault-search-input:focus + .vault-search-icon,
@@ -473,11 +486,13 @@
   color: #fff;
   border-color: transparent;
   box-shadow: 0 2px 8px var(--vault-teal-glow);
+  transition: all var(--dur-medium) var(--ease-smooth);
 }
 
 .vault-editor-btn--primary:hover {
+  background: linear-gradient(135deg, var(--vault-orange) 0%, var(--vault-orange-dark) 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px var(--vault-teal-glow), 0 0 0 1px rgba(255,255,255,0.1);
+  box-shadow: 0 4px 16px var(--vault-orange-glow), 0 0 0 1px rgba(255,255,255,0.1);
 }
 
 .vault-editor-btn--primary:active {

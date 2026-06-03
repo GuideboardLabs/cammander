@@ -8,7 +8,7 @@ updated: 2026-05-27T00:00:00.000Z
 # Chat Agent and Vault Memory
 
 ## System Prompt Chain
-1. Load soul file (HQ.md > CLAUDE.md > AGENTS.md > soul.md) from workspace root
+1. Load soul file (HQ.md > CLAUSE.md > AGENTS.md > soul.md) from workspace root
 2. Build system prompt: soul content + workspace context + current date
 3. If vault notes are relevant: append `---\nProject Knowledge (from vault notes):\n<section per note>`
 4. Vault context budget: 6000 chars max (tunable via `maxChars` param)

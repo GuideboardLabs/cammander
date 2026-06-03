@@ -1463,6 +1463,22 @@ input, textarea { font-family: inherit; }
   .main-split > .content-area {
     grid-column: 1 / -1 !important;
   }
+  /* Vault panel: full-width overlay on mobile */
+  .main-split > .vault-panel--expanded,
+  .main-split--vault > .vault-panel--expanded,
+  .main-split--vault-chat > .vault-panel--expanded,
+  .main-split--dual > .vault-panel--expanded {
+    grid-row: 1 !important;
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    border-right: none;
+  }
   .main-split > .chat-panel--expanded,
   .main-split--chat > .chat-panel--expanded,
   .main-split--dual > .chat-panel--expanded,
@@ -2066,6 +2082,7 @@ input, textarea { font-family: inherit; }
   border-bottom: 1px solid var(--border-passive);
   flex-shrink: 0;
   gap: 8px;
+  background: linear-gradient(135deg, rgba(20,184,166,0.06) 0%, rgba(249,115,22,0.04) 100%);
 }
 
 .vault-header-title {
@@ -2098,6 +2115,7 @@ input, textarea { font-family: inherit; }
   background: var(--ink-04);
   color: var(--ink);
   border-color: var(--border-active);
+  box-shadow: 0 0 0 2px rgba(249,115,22,0.12);
 }
 
 .vault-header-session-toggle {
@@ -2141,7 +2159,8 @@ input, textarea { font-family: inherit; }
 }
 
 .vault-search-input:focus {
-  border-color: var(--border-active);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(20,184,166,0.15), inset 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .vault-search-input::placeholder {
@@ -2166,7 +2185,11 @@ input, textarea { font-family: inherit; }
 }
 
 .vault-note-item:hover { background: var(--ink-04); }
-.vault-note-item--active { background: var(--accent-light); }
+.vault-note-item--active {
+  background: var(--accent-light);
+  border-left: 2px solid var(--accent);
+  padding-left: 10px;
+}
 
 .vault-note-icon {
   font-size: 16px;
@@ -2325,9 +2348,16 @@ input, textarea { font-family: inherit; }
 }
 
 /* When chat is visible, content-area only takes left column */
-.main-split--chat > .content-area,
-.main-split--dual > .content-area {
+.main-split--chat {
+  grid-template-columns: 1fr 340px;
+}
+
+.main-split--chat > .content-area {
   grid-column: 1;
+}
+
+.main-split--dual {
+  grid-template-columns: 280px 1fr 340px;
 }
 
 .main-split > .terminal-panel--collapsed {
@@ -2376,7 +2406,21 @@ input, textarea { font-family: inherit; }
 }
 
 /* Vault visible — takes 280px */
-.main-split--vault > .vault-panel--expanded,
+.main-split--vault {
+  grid-template-columns: 280px 1fr;
+}
+
+.main-split--vault > .vault-panel--expanded {
+  grid-row: 1;
+  grid-column: 1;
+  width: 280px;
+  opacity: 1;
+}
+
+.main-split--vault-chat {
+  grid-template-columns: 280px 1fr 280px;
+}
+
 .main-split--vault-chat > .vault-panel--expanded {
   grid-row: 1;
   grid-column: 1;
@@ -2392,7 +2436,10 @@ input, textarea { font-family: inherit; }
 }
 
 /* Content area shifts when vault is open */
-.main-split--vault > .content-area,
+.main-split--vault > .content-area {
+  grid-column: 2;
+}
+
 .main-split--vault-chat > .content-area {
   grid-column: 2;
 }
@@ -2402,12 +2449,18 @@ input, textarea { font-family: inherit; }
 }
 
 /* Chat visible — takes 340px (or 420px in dual mode) */
-.main-split--chat > .chat-panel--expanded,
-.main-split--dual > .chat-panel--expanded {
+.main-split--chat > .chat-panel--expanded {
   grid-row: 1;
   grid-column: 2;
   opacity: 1;
   width: 340px;
+}
+
+.main-split--dual > .chat-panel--expanded {
+  grid-row: 1;
+  grid-column: 3;
+  opacity: 1;
+  width: 420px;
 }
 
 /* In vault+chat mode, chat is col 3, adjust widths */
@@ -2416,11 +2469,6 @@ input, textarea { font-family: inherit; }
   grid-column: 3;
   opacity: 1;
   width: 280px;
-}
-
-/* In dual mode (chat + terminal), chat gets wider */
-.main-split--dual > .chat-panel--expanded {
-  width: 420px;
 }
 
 /* Terminal not visible — hide the row */

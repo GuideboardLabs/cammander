@@ -1,4 +1,4 @@
-# CLAUDE.md
+# CLAUSE.md
 
 Behavioral guidelines to reduce common LLM coding mistakes. These apply to every interaction.
 

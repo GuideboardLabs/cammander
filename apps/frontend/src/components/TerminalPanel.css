@@ -2,8 +2,8 @@
 .terminal-panel {
   display: flex;
   flex-direction: column;
-  background: #11111b;
-  border-top: 1px solid #313244;
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
   min-height: 120px;
 }
 
@@ -11,8 +11,8 @@
   display: flex;
   align-items: center;
   padding: 0;
-  background: #181825;
-  border-bottom: 1px solid #313244;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
   user-select: none;
   gap: 0;
@@ -34,10 +34,10 @@
   padding: 4px 10px;
   font-size: 11px;
   font-weight: 500;
-  color: #6c7086;
+  color: var(--ink-muted);
   background: transparent;
   border: none;
-  border-right: 1px solid #1e1e2e;
+  border-right: 1px solid var(--bg-elevated);
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
@@ -45,18 +45,18 @@
 }
 
 .terminal-tab:hover {
-  background: #1e1e2e;
-  color: #a6adc8;
+  background: var(--bg-elevated);
+  color: var(--ink-muted);
 }
 
 .terminal-tab--active {
-  background: #11111b;
-  color: #cdd6f4;
-  box-shadow: inset 0 -2px 0 #14b8a6;
+  background: var(--bg-primary);
+  color: var(--ink-primary);
+  box-shadow: inset 0 -2px 0 var(--teal);
 }
 
 .terminal-tab--add {
-  color: #45475a;
+  color: var(--ink-dim);
   font-size: 14px;
   font-weight: 600;
   padding: 4px 10px;
@@ -65,8 +65,8 @@
 }
 
 .terminal-tab--add:hover {
-  color: #14b8a6;
-  background: #1e1e2e;
+  color: var(--teal);
+  background: var(--bg-elevated);
 }
 
 .terminal-tab-label {
@@ -81,15 +81,15 @@
   height: 14px;
   font-size: 9px;
   border-radius: 2px;
-  color: #585b70;
+  color: var(--ink-faint);
   cursor: pointer;
   transition: all 0.1s;
   line-height: 1;
 }
 
 .terminal-tab-close:hover {
-  background: #f38ba8;
-  color: #11111b;
+  background: var(--c-pink);
+  color: var(--bg-primary);
 }
 
 /* ── Status dot (reused in tab) ── */
@@ -102,12 +102,12 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #585b70;
+  background: var(--ink-faint);
   flex-shrink: 0;
 }
 
 .terminal-status-dot--on {
-  background: #a6e3a1;
+  background: var(--c-lime);
   box-shadow: 0 0 4px rgba(166, 227, 161, 0.4);
 }
 
@@ -118,7 +118,7 @@
   gap: 2px;
   padding: 0 6px;
   flex-shrink: 0;
-  border-left: 1px solid #1e1e2e;
+  border-left: 1px solid var(--bg-elevated);
   margin-left: auto;
 }
 
@@ -128,15 +128,15 @@
   border-radius: 3px;
   border: 1px solid transparent;
   background: none;
-  color: #585b70;
+  color: var(--ink-faint);
   cursor: pointer;
   transition: all 0.15s;
   line-height: 1;
 }
 
 .terminal-btn:hover {
-  background: #313244;
-  color: #cdd6f4;
+  background: var(--border-color);
+  color: var(--ink-primary);
 }
 
 /* ── Terminal body ── */
@@ -157,4 +157,44 @@
 
 .terminal-body .xterm-viewport {
   overflow-y: auto !important;
+}
+
+/* ── Pizzazz: glow & gradients ── */
+.terminal-panel {
+  box-shadow: inset 0 1px 0 var(--teal-glow);
+}
+
+.terminal-tab--active {
+  background: linear-gradient(180deg, var(--bg-primary) 0%, rgba(20,184,166,0.06) 100%);
+  box-shadow: inset 0 -2px 0 var(--teal), 0 0 8px var(--teal-glow);
+}
+
+.terminal-tab--add:hover {
+  background: linear-gradient(135deg, var(--teal-light) 0%, var(--orange-light) 100%);
+  color: var(--orange);
+}
+
+.terminal-status-dot--on {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 4px rgba(132, 204, 22, 0.4); }
+  50%      { box-shadow: 0 0 10px rgba(132, 204, 22, 0.7); }
+}
+
+.terminal-header {
+  background: linear-gradient(90deg, var(--bg-secondary) 0%, rgba(20,184,166,0.04) 50%, rgba(249,115,22,0.03) 100%);
+}
+
+.terminal-btn:hover {
+  background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--teal-light) 100%);
+  color: var(--teal);
+  border-color: var(--border-active);
+}
+
+.terminal-tab-close:hover {
+  background: linear-gradient(135deg, var(--c-pink) 0%, #e85d75 100%);
+  color: #fff;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
 }
