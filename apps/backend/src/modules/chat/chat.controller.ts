@@ -5,13 +5,14 @@ import { SettingsService } from '../settings/settings.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { ToolsService, ToolResult } from '../tools/tools.service';
 import { VaultService } from '../vault/vault.service';
+import type { VaultNote } from '../vault/vault.types';
 import { IsString, IsOptional } from 'class-validator';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
-// Load the project soul (HQ.md, CLAUSE.md, AGENTS.md, or soul.md) from workspace root.
+// Load the project soul (CLAUSE.md, HQ.md, AGENTS.md, or soul.md) from workspace root.
 // Returns the file contents or null if none found.
-const SOUL_FILES = ['HQ.md', 'CLAUSE.md', 'AGENTS.md', 'soul.md'];
+const SOUL_FILES = ['CLAUSE.md', 'HQ.md', 'AGENTS.md', 'soul.md'];
 
 function loadSoul(workspaceRoot: string): string | null {
   for (const name of SOUL_FILES) {
@@ -28,9 +29,28 @@ function loadSoul(workspaceRoot: string): string | null {
 function buildSystemPrompt(workspaceRoot: string, vaultContext?: string): string {
   const workspaceName = workspaceRoot.split('/').pop() || 'workspace';
   const soul = loadSoul(workspaceRoot);
+
   const context = `\n\n---\nWorkspace: "${workspaceName}" at ${workspaceRoot}. All file paths and commands are relative to this project.\nCurrent date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.`;
 
-  const behaviorGuidelines = `
+  const harnessRules = `
+## Cammander Coding Harness
+
+You are operating inside the Cammander IDE, a local-first AI coding assistant. The user expects top-tier local coding agent quality (Claude Code / Codex / OpenCode level): deep reasoning, tool use, verification, and persistence.
+
+### Core rules
+
+1. **Read before writing**: Never edit a file you have not read. Use read_file with offset/limit to inspect context.
+2. **Plan before acting**: For any non-trivial request, state a 3-step plan and success criteria before using tools.
+3. **Verify every change**: After writing, re-read the changed region. After builds/tests, report the exact output.
+4. **One idea per tool round**: Make one focused change per round, then verify.
+5. **Never guess file structure**: Use list_files or grep to confirm paths.
+6. **Preserve behavior**: Do not refactor adjacent code, rename unrelated things, or change formatting that is not part of the fix.
+7. **Ask when uncertain**: If the user's request is ambiguous, stop and ask a clarifying question. Do not silently choose.
+8. **Tool discipline**: bash commands run in ${workspaceRoot}. All file paths are relative to that root. Avoid destructive commands without a prior read.
+9. **Vault memory**: When you make a decision, discover a pitfall, or learn project-specific context, call vault_note to store it.
+10. **Concise reporting**: Explain what you did and why; avoid generic encouragement. Plain facts only.`;
+
+  const behavioralGuidelines = `
 ## Behavioral Guidelines
 
 1. **Think Before Coding**: State assumptions explicitly. If multiple interpretations exist, present them. If something is unclear, stop and ask rather than guessing.
@@ -46,8 +66,8 @@ function buildSystemPrompt(workspaceRoot: string, vaultContext?: string): string
 6. **No Premature Stops**: If a tool fails, try an alternative. Don't give up mid-task — deliver the result, not a status report.`;
 
   let prompt = soul
-    ? soul + behaviorGuidelines + context
-    : `You are a helpful coding assistant inside the cammander IDE. You have tools to run commands, read and write files, search code, and list directories. Use them to help the user. Be concise and practical.` + behaviorGuidelines + context;
+    ? soul + harnessRules + behavioralGuidelines + context
+    : `${harnessRules}${behavioralGuidelines}${context}`;
 
   // Inject vault context — relevant project knowledge from the memory vault
   if (vaultContext) {
@@ -204,12 +224,12 @@ export class ChatController {
     this.tools.setWorkspaceRoot(workspaceRoot);
 
     // Fetch relevant vault context for this query + workspace
-    const vaultNotes = this.vault.contextRelevant(dto.message, workspaceRoot);
-    const vaultContext = vaultNotes.length > 0
-      ? vaultNotes.map(n => `## ${n.title}\nTags: ${n.tags.join(', ') || 'none'}\n${n.content}`).join('\n\n')
+    const vaultResult = this.vault.contextRelevant(dto.message, workspaceRoot);
+    const vaultContext = vaultResult.notes.length > 0
+      ? vaultResult.notes.map(n => `## ${n.title}\nTags: ${n.tags.join(', ') || 'none'}\n${n.content}`).join('\n\n')
       : undefined;
 
-    // Build messages array for the LLM
+    // Build system prompt
     const messages: any[] = [
       {
         role: 'system',
@@ -336,6 +356,22 @@ export class ChatController {
           content,
           model,
         });
+
+        // Auto-write session note if tools were used in past rounds
+        if (round > 0) {
+          const toolNames = session.messages.filter(m => m.role === 'assistant' && m.toolCalls?.length)
+            .flatMap(m => m.toolCalls!.map((tc: any) => tc.function?.name || 'unknown'))
+            .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i);
+          try {
+            this.vault.writeSessionNote({
+              summary: content.slice(0, 200) || `Completed ${session.messages.filter(m => m.role === 'assistant').length} assistant rounds`,
+              decisions: [],
+              tags: [...toolNames.map((t: string) => `tool:${t}`), 'auto-write'],
+              sessionId: session.id,
+            });
+          } catch { /* silent */ }
+        }
+
         return { error: false, content, provider, model, sessionId: session.id, session: updatedSession };
       }
 
@@ -386,11 +422,23 @@ export class ChatController {
     }
 
     // Exceeded max rounds
+    const exhaustedContent = '⚠ Reached maximum number of tool call rounds. Please continue the conversation.';
     const exhaustedSession = this.sessions.addMessage(session.id, {
       role: 'assistant',
-      content: '⚠ Reached maximum number of tool call rounds. Please continue the conversation.',
+      content: exhaustedContent,
     });
-    return { error: false, content: 'Reached maximum tool call rounds.', provider, model, sessionId: session.id, session: exhaustedSession };
+
+    // Auto-write session note even on exhaustion — tools were still used
+    try {
+      this.vault.writeSessionNote({
+        summary: `Chat exhausted after ${MAX_TOOL_ROUNDS} tool rounds. ${session.messages.filter(m => m.role === 'assistant').length} assistant messages.`,
+        decisions: [],
+        tags: ['auto-write', 'exhausted'],
+        sessionId: session.id,
+      });
+    } catch { /* silent */ }
+
+    return { error: false, content: exhaustedContent, provider, model, sessionId: session.id, session: exhaustedSession };
   }
 
   @Post('stream')
@@ -424,16 +472,16 @@ export class ChatController {
     this.tools.setWorkspaceRoot(workspaceRoot);
 
     // Fetch relevant vault context for this query + workspace
-    const vaultNotes = this.vault.contextRelevant(dto.message, workspaceRoot);
-    const vaultContext = vaultNotes.length > 0
-      ? vaultNotes.map(n => `## ${n.title}\nTags: ${n.tags.join(', ') || 'none'}\n${n.content}`).join('\n\n')
+    const vaultResult2 = this.vault.contextRelevant(dto.message, workspaceRoot);
+    const vaultContext2 = vaultResult2.notes.length > 0
+      ? vaultResult2.notes.map(n => `## ${n.title}\nTags: ${n.tags.join(', ') || 'none'}\n${n.content}`).join('\n\n')
       : undefined;
 
     // Build messages
     const messages: any[] = [
       {
         role: 'system',
-        content: buildSystemPrompt(workspaceRoot, vaultContext),
+        content: buildSystemPrompt(workspaceRoot, vaultContext2),
       },
     ];
 
@@ -621,6 +669,22 @@ export class ChatController {
           });
           send({ type: 'done', session: finalSession });
           res.end();
+
+          // Auto-write session note if tools were used
+          if (round > 0) {
+            const toolNames = session.messages.filter(m => m.role === 'assistant' && m.toolCalls?.length)
+              .flatMap(m => m.toolCalls!.map((tc: any) => tc.function?.name || 'unknown'))
+              .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i);
+            try {
+              this.vault.writeSessionNote({
+                summary: (fullContent || '(no response)').slice(0, 200),
+                decisions: [],
+                tags: [...toolNames.map((t: string) => `tool:${t}`), 'auto-write'],
+                sessionId: session.id,
+              });
+            } catch { /* silent */ }
+          }
+
           return;
         }
 
@@ -685,6 +749,16 @@ export class ChatController {
       });
       send({ type: 'done', session: exhaustedSession });
       res.end();
+
+      // Auto-write on exhaustion
+      try {
+        this.vault.writeSessionNote({
+          summary: `Stream chat exhausted after ${MAX_TOOL_ROUNDS} tool rounds. ${session.messages.filter(m => m.role === 'assistant').length} assistant messages.`,
+          decisions: [],
+          tags: ['auto-write', 'exhausted'],
+          sessionId: session.id,
+        });
+      } catch { /* silent */ }
     } catch (fetchErr: any) {
       this.logger.error(`Stream fetch failed: ${fetchErr.message}`);
       send({ type: 'error', status: 502, message: `Cannot reach ${provider}: ${fetchErr.message}` });
