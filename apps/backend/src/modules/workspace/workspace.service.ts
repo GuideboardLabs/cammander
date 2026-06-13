@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { WorkspaceIndexEntry } from '@shared/types';
 import * as fs from 'fs';
 import * as path from 'path';
+import { WorkspaceTreeService } from './workspace-tree.service';
 
 export interface WorkspaceRecord {
   id: string;
@@ -16,7 +17,7 @@ export class WorkspaceService {
   private workspaces = new Map<string, WorkspaceRecord>();
   private dataDir = './data/workspaces';
 
-  constructor() {
+  constructor(private readonly treeService: WorkspaceTreeService) {
     if (!fs.existsSync(this.dataDir)) fs.mkdirSync(this.dataDir, { recursive: true });
     this.loadIndex();
   }
@@ -48,6 +49,10 @@ export class WorkspaceService {
     if (dto.name) rec.name = dto.name;
     this.saveIndex();
     return rec;
+  }
+
+  getTree(root: string): string {
+    return this.treeService.summarize(root, 150);
   }
 
   async indexPath(dir: string): Promise<WorkspaceIndexEntry[]> {

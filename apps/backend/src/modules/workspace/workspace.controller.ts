@@ -54,6 +54,14 @@ export class WorkspaceController {
   }
 
   /** Browse subdirectories of a given path (for deeper navigation) */
+  @Get('tree')
+  getTree(@Query('path') dirPath?: string) {
+    const target = dirPath || os.homedir();
+    if (!fs.existsSync(target)) return { path: target, tree: '' };
+    return { path: target, tree: this.workspaceService.getTree(target) };
+  }
+
+  /** Browse subdirectories of a given path (for deeper navigation) */
   @Get('browse')
   browse(@Query('path') dirPath?: string) {
     const target = dirPath || os.homedir();

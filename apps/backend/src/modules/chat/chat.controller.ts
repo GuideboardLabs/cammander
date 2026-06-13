@@ -5,6 +5,7 @@ import { SettingsService } from '../settings/settings.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { ToolsService, ToolResult } from '../tools/tools.service';
 import { VaultService } from '../vault/vault.service';
+import { WorkspaceService } from '../workspace/workspace.service';
 import type { VaultNote } from '../vault/vault.types';
 import { IsString, IsOptional } from 'class-validator';
 import { readFileSync, existsSync } from 'fs';
@@ -26,11 +27,13 @@ function loadSoul(workspaceRoot: string): string | null {
   return null;
 }
 
-function buildSystemPrompt(workspaceRoot: string, vaultContext?: string): string {
+function buildSystemPrompt(workspaceRoot: string, treeSummary: string, vaultContext?: string): string {
   const workspaceName = workspaceRoot.split('/').pop() || 'workspace';
   const soul = loadSoul(workspaceRoot);
 
   const context = `\n\n---\nWorkspace: "${workspaceName}" at ${workspaceRoot}. All file paths and commands are relative to this project.\nCurrent date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.`;
+
+  const layout = `\n\n---\nWorkspace layout:\n${treeSummary.slice(0, 2000)}`;
 
   const harnessRules = `
 ## Cammander Coding Harness
@@ -66,8 +69,8 @@ You are operating inside the Cammander IDE, a local-first AI coding assistant. T
 6. **No Premature Stops**: If a tool fails, try an alternative. Don't give up mid-task — deliver the result, not a status report.`;
 
   let prompt = soul
-    ? soul + harnessRules + behavioralGuidelines + context
-    : `${harnessRules}${behavioralGuidelines}${context}`;
+    ? soul + harnessRules + behavioralGuidelines + context + layout
+    : `${harnessRules}${behavioralGuidelines}${context}${layout}`;
 
   // Inject vault context — relevant project knowledge from the memory vault
   if (vaultContext) {
@@ -202,6 +205,7 @@ export class ChatController {
     private tools: ToolsService,
     private vault: VaultService,
     private config: ConfigService,
+    private workspaceService: WorkspaceService,
   ) {}
 
   @Post()
@@ -229,11 +233,14 @@ export class ChatController {
       ? vaultResult.notes.map(n => `## ${n.title}\nTags: ${n.tags.join(', ') || 'none'}\n${n.content}`).join('\n\n')
       : undefined;
 
+    // Summarize workspace tree for context
+    const treeSummary = this.workspaceService.getTree(workspaceRoot);
+
     // Build system prompt
     const messages: any[] = [
       {
         role: 'system',
-        content: buildSystemPrompt(workspaceRoot, vaultContext),
+        content: buildSystemPrompt(workspaceRoot, treeSummary, vaultContext),
       },
     ];
 
@@ -477,11 +484,14 @@ export class ChatController {
       ? vaultResult2.notes.map(n => `## ${n.title}\nTags: ${n.tags.join(', ') || 'none'}\n${n.content}`).join('\n\n')
       : undefined;
 
+    // Summarize workspace tree for context
+    const treeSummary2 = this.workspaceService.getTree(workspaceRoot);
+
     // Build messages
     const messages: any[] = [
       {
         role: 'system',
-        content: buildSystemPrompt(workspaceRoot, vaultContext2),
+        content: buildSystemPrompt(workspaceRoot, treeSummary2, vaultContext2),
       },
     ];
 
