@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { WorkspaceModule } from './modules/workspace/workspace.module';
-import { SessionModule } from './modules/session/session.module';
 import { FilesystemModule } from './modules/filesystem/filesystem.module';
 import { PermissionModule } from './modules/permission/permission.module';
 import { ToolRegistryModule } from './modules/tool-registry/tool-registry.module';
@@ -31,7 +30,6 @@ import { environment } from './config/environment';
     }),
     CoreGatewayModule,
     WorkspaceModule,
-    SessionModule,
     FilesystemModule,
     PermissionModule,
     ToolRegistryModule,
