@@ -139,6 +139,7 @@ export type WorkspaceAction =
   // Chat actions
   | { type: 'ADD_CHAT_MESSAGE'; message: ChatMessage }
   | { type: 'ADD_CHAT_MESSAGES'; messages: ChatMessage[] }
+  | { type: 'APPEND_TO_LAST_ASSISTANT'; token: string }
   | { type: 'CLEAR_CHAT_HISTORY' }
   | { type: 'SET_CHAT_MESSAGES'; messages: ChatMessage[] }
   // AI context actions

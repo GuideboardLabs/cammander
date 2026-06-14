@@ -130,6 +130,42 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
       };
     }
 
+    case 'APPEND_TO_LAST_ASSISTANT': {
+      const messages = state.chatMessages;
+      if (messages.length === 0) {
+        return {
+          ...state,
+          chatMessages: [{
+            id: `asst-${Date.now()}`,
+            role: 'assistant',
+            content: action.token,
+            timestamp: new Date().toISOString(),
+            metadata: { streamed: true },
+          }],
+        };
+      }
+      const last = messages[messages.length - 1]!;
+      if (last.role === 'assistant') {
+        const next = [...messages];
+        next[next.length - 1] = {
+          ...last,
+          content: last.content + action.token,
+          metadata: { ...last.metadata, streamed: true },
+        };
+        return { ...state, chatMessages: next };
+      }
+      return {
+        ...state,
+        chatMessages: [...messages, {
+          id: `asst-${Date.now()}`,
+          role: 'assistant',
+          content: action.token,
+          timestamp: new Date().toISOString(),
+          metadata: { streamed: true },
+        }],
+      };
+    }
+
     case 'CLEAR_CHAT_HISTORY':
       return { ...state, chatMessages: [] };
 

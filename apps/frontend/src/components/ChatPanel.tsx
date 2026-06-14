@@ -32,7 +32,7 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
     ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
   }, []);
 
-  // Send message
+  // Send message (streaming via /chat/stream)
   const sendChat = useCallback(async () => {
     const text = input.trim();
     if (!text || loading) return;
@@ -50,28 +50,27 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
     };
     dispatch({ type: 'ADD_CHAT_MESSAGE', message: userMsg });
 
-    try {
-      // Create session if needed
-      let sid = sessionId;
-      if (!sid) {
-        try {
-          const sessRes = await fetch(`${API_BASE}/sessions`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: text.slice(0, 60) }),
-          });
-          const sessData = await sessRes.json();
-          sid = sessData.id;
-          setSessionId(sid);
-        } catch (e) {
-          console.error('Failed to create session:', e);
-        }
+    let sid = sessionId;
+    if (!sid) {
+      try {
+        const sessRes = await fetch(`${API_BASE}/sessions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: text.slice(0, 60) }),
+        });
+        const sessData = await sessRes.json();
+        sid = sessData.id;
+        setSessionId(sid);
+      } catch (e) {
+        console.error('Failed to create session:', e);
       }
+    }
 
-      // Derive workspace root from file tree
-      const workspaceRoot = state.root?.path || undefined;
+    const workspaceRoot = state.root?.path || undefined;
+    const abortController = new AbortController();
 
-      const res = await fetch(`${API_BASE}/chat`, {
+    try {
+      const res = await fetch(`${API_BASE}/chat/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -80,42 +79,83 @@ export function ChatPanel({ onClose }: ChatPanelProps) {
           model: model || undefined,
           workspaceRoot,
         }),
+        signal: abortController.signal,
       });
-      const data = await res.json();
 
-      if (data.error) {
-        const errMsg: ChatMessage = {
-          id: `err-${Date.now()}`,
-          role: 'assistant',
-          content: `⚠ ${data.message || 'Error contacting provider'}`,
-          timestamp: new Date().toISOString(),
-        };
-        dispatch({ type: 'ADD_CHAT_MESSAGE', message: errMsg });
-      } else if (data.session?.messages) {
-        // Replace all messages with server-truth
-        const serverMessages: ChatMessage[] = data.session.messages.map(
-          (m: any, i: number) => ({
-            id: `${m.role}-${m.timestamp || Date.now()}-${i}`,
-            role: m.role,
-            content: m.content || '',
-            timestamp: m.timestamp ? new Date(m.timestamp).toISOString() : new Date().toISOString(),
-            metadata: m.model ? { model: m.model, provider: data.provider } : undefined,
-          }),
-        );
-        dispatch({ type: 'SET_CHAT_MESSAGES', messages: serverMessages });
-      } else if (data.content) {
-        const assistMsg: ChatMessage = {
-          id: `asst-${Date.now()}`,
-          role: 'assistant',
-          content: data.content,
-          timestamp: new Date().toISOString(),
-          metadata: { model: data.model, provider: data.provider },
-        };
-        dispatch({ type: 'ADD_CHAT_MESSAGE', message: assistMsg });
+      if (!res.body) throw new Error('No response body');
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let latestModel = model;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop() || '';
+        for (const part of parts) {
+          const dataLine = part.split('\n').find((l) => l.startsWith('data: '));
+          if (!dataLine) continue;
+          const payload = dataLine.slice('data: '.length);
+          try {
+            const ev = JSON.parse(payload);
+            if (ev.type === 'token' && ev.content) {
+              dispatch({ type: 'APPEND_TO_LAST_ASSISTANT', token: ev.content });
+            } else if (ev.type === 'tool_call') {
+              dispatch({
+                type: 'ADD_CHAT_MESSAGE',
+                message: {
+                  id: `tool-call-${Date.now()}`,
+                  role: 'tool',
+                  content: `\`\`\`\n${ev.name}\n\`\`\``,
+                  timestamp: new Date().toISOString(),
+                },
+              });
+            } else if (ev.type === 'tool_result') {
+              dispatch({
+                type: 'ADD_CHAT_MESSAGE',
+                message: {
+                  id: `tool-result-${Date.now()}`,
+                  role: 'tool',
+                  content: `\`\`\`\n${ev.name}: ${ev.content}\n\`\`\``,
+                  timestamp: new Date().toISOString(),
+                },
+              });
+            } else if (ev.type === 'done') {
+              if (ev.session?.messages) {
+                const serverMessages: ChatMessage[] = ev.session.messages.map(
+                  (m: any, i: number) => ({
+                    id: `${m.role}-${m.timestamp || Date.now()}-${i}`,
+                    role: m.role,
+                    content: m.content || '',
+                    timestamp: m.timestamp ? new Date(m.timestamp).toISOString() : new Date().toISOString(),
+                    metadata: m.model ? { model: m.model, provider: ev.provider } : undefined,
+                  }),
+                );
+                dispatch({ type: 'SET_CHAT_MESSAGES', messages: serverMessages });
+              }
+            } else if (ev.type === 'error') {
+              dispatch({
+                type: 'ADD_CHAT_MESSAGE',
+                message: {
+                  id: `err-${Date.now()}`,
+                  role: 'assistant',
+                  content: `⚠ ${ev.message || 'Stream error'}`,
+                  timestamp: new Date().toISOString(),
+                },
+              });
+            }
+            if (ev.model) latestModel = ev.model;
+          } catch {
+            // ignore malformed events
+          }
+        }
       }
 
-      if (data.model) setModel(data.model);
+      setModel(latestModel);
     } catch (e: any) {
+      if (e.name === 'AbortError') return;
       const errMsg: ChatMessage = {
         id: `net-${Date.now()}`,
         role: 'assistant',
