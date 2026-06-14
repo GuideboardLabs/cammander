@@ -14,6 +14,7 @@ export class SettingsService {
 
   constructor(private config: ConfigService) {
     this.dataDir = this.config.get<string>('DATA_DIR') || path.join(this.config.get<string>('WORKSPACE_ROOT') || '/home/sc/cammander', '.cammander', 'data');
+    this.settings = DEFAULT_SETTINGS;
     this.settings = this.load();
   }
 
