@@ -28,7 +28,7 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  activeProvider: ProviderType.OLLAMA_CLOUD,
+  activeProvider: ProviderType.OLLAMA_LOCAL,
   ollamaCloud: {
     apiKey: '',
     baseUrl: 'https://ollama.com/v1',
