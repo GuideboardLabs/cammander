@@ -161,6 +161,23 @@ export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect
     this.killSlot(slotId);
   }
 
+  @SubscribeMessage('terminal:reset')
+  handleReset(client: Socket, payload?: { slot?: string }) {
+    const slotId = payload?.slot || this.clientSlot.get(client.id);
+    if (!slotId) return;
+
+    // Kill existing PTY
+    this.killSlot(slotId);
+
+    // Notify clients that the slot is gone
+    const clients = this.slotClients.get(slotId);
+    if (clients) {
+      for (const cid of clients) {
+        this.server.to(cid).emit('terminal:reset');
+      }
+    }
+  }
+
   private spawnPty(client: Socket, slotId: string, payload: { cwd?: string; cols?: number; rows?: number }) {
     const cwd = payload.cwd || process.env.HOME || '/tmp';
     const cols = payload.cols || 80;
@@ -206,6 +223,8 @@ export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect
     });
 
     ptyProcess.onExit(({ exitCode }: { exitCode: number }) => {
+      // Notify clients and clean session registry, but do not remove slot client mapping
+      // so a fresh attach can re-create a PTY in the same slot.
       const clients = this.slotClients.get(slotId);
       if (clients) {
         for (const cid of clients) {
@@ -213,7 +232,6 @@ export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect
         }
       }
       this.sessions.delete(slotId);
-      this.slotClients.delete(slotId);
     });
 
     const session: PtyProcess = {

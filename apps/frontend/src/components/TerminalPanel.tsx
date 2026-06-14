@@ -124,6 +124,12 @@ export function TerminalPanel({ onClose }: TerminalPanelProps) {
       }
     });
 
+    socket.on('terminal:reset', () => {
+      xterm.clear();
+      xterm.write('\x1b[90m[Terminal reset]\x1b[0m\r\n');
+      dispatch({ type: 'UPDATE_TERMINAL_TAB', slotId, updates: { pid: null, connected: false } });
+    });
+
     socket.on('terminal:data', (data: string) => {
       xterm.write(data);
     });
@@ -246,6 +252,7 @@ export function TerminalPanel({ onClose }: TerminalPanelProps) {
     instance.xterm.clear();
     instance.socket.emit('terminal:kill', { slot: activeTerminal });
     const cwd = state.root?.path || undefined;
+    // Reattach will trigger the server to spawn a fresh PTY since the old one is gone
     instance.socket.emit('terminal:attach', {
       slot: activeTerminal,
       cwd,
@@ -266,6 +273,11 @@ export function TerminalPanel({ onClose }: TerminalPanelProps) {
         }
       }
     } else {
+      const instance = termInstances.current.get(slotId);
+      if (instance) {
+        const cleanup = (instance.container as any).__cleanup;
+        if (cleanup) cleanup();
+      }
       containerRefs.current.delete(slotId);
     }
   }, [terminalTabs, spawnTerminal]);
