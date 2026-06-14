@@ -1,53 +1,93 @@
-import { Controller, Get, Post, Put, Delete, Query, Param, Body, NotFoundException, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, Logger, BadRequestException } from '@nestjs/common';
 import { VaultService } from './vault.service';
-import { CreateVaultNoteDto, UpdateVaultNoteDto } from './vault.types';
+import { CreateVaultNoteDto, UpdateVaultNoteDto, SearchMode } from './vault.types';
 
 @Controller('vault')
 export class VaultController {
   private readonly logger = new Logger(VaultController.name);
 
-  constructor(private vault: VaultService) {}
+  constructor(private readonly vault: VaultService) {}
 
   @Get('notes')
-  listNotes() {
+  list() {
     return this.vault.list();
   }
 
   @Get('notes/:id')
-  getNote(@Param('id') id: string, @Query('path') subPath?: string) {
-    const note = this.vault.get(id, subPath);
-    if (!note) throw new NotFoundException(`Note '${id}' not found`);
-    return note;
+  get(@Param('id') id: string) {
+    return this.vault.get(id);
   }
 
   @Post('notes')
-  createNote(@Body() dto: CreateVaultNoteDto) {
+  create(@Body() dto: CreateVaultNoteDto) {
+    if (!dto.content || dto.content.trim().length === 0) {
+      throw new BadRequestException('Note content is required.');
+    }
     return this.vault.create(dto);
   }
 
   @Put('notes/:id')
-  updateNote(@Param('id') id: string, @Body() dto: UpdateVaultNoteDto, @Query('path') subPath?: string) {
-    const note = this.vault.update(id, dto, subPath);
-    if (!note) throw new NotFoundException(`Note '${id}' not found`);
-    return note;
+  update(@Param('id') id: string, @Body() dto: UpdateVaultNoteDto) {
+    if (dto.content !== undefined && dto.content.trim().length === 0) {
+      throw new BadRequestException('Note content cannot be empty.');
+    }
+    return this.vault.update(id, dto);
   }
 
   @Delete('notes/:id')
-  deleteNote(@Param('id') id: string, @Query('path') subPath?: string) {
-    const ok = this.vault.delete(id);
-    if (!ok) throw new NotFoundException(`Note '${id}' not found`);
-    return { ok: true };
+  delete(@Param('id') id: string) {
+    return this.vault.delete(id);
   }
 
   @Get('search')
-  searchNotes(@Query('q') query: string) {
-    if (!query) return [];
-    return this.vault.search(query);
+  search(@Query('q') q: string) {
+    return this.vault.search(q || '');
   }
 
-  @Get('links')
-  getBacklinks(@Query('target') target: string) {
-    if (!target) return [];
-    return this.vault.getBacklinks(target);
+  @Get('backlinks/:id')
+  backlinks(@Param('id') id: string) {
+    return this.vault.getBacklinks(id);
+  }
+
+  @Get('facts/:id')
+  facts(@Param('id') id: string) {
+    return this.vault.getFacts(id);
+  }
+
+  /** Get full knowledge graph (nodes + edges from wikilinks). */
+  @Get('graph')
+  graph() {
+    return this.vault.getKnowledgeGraph();
+  }
+
+  /** GBrain-inspired context with auto-detected search mode. */
+  @Post('context')
+  context(
+    @Body() body: { message: string; workspacePath: string; mode?: SearchMode; maxChars?: number },
+  ) {
+    return this.vault.contextRelevant(
+      body.message,
+      body.workspacePath,
+      body.maxChars,
+      body.mode,
+    );
+  }
+
+  /** Write a session auto-note after conversation. */
+  @Post('sessions')
+  writeSession(@Body() body: Record<string, any>) {
+    return this.vault.writeSessionNote({
+      summary: body.summary || '',
+      decisions: body.decisions || [],
+      tags: body.tags || [],
+      sessionId: body.sessionId || '',
+    });
+  }
+
+  /** Seed default vault notes (v0.2 gbrain-inspired defaults). */
+  @Post('seed')
+  seed() {
+    this.vault.seedDefaults();
+    return { ok: true, message: 'Vault seeded with defaults' };
   }
 }
