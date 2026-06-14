@@ -1,6 +1,8 @@
 # INSTALL.md — cammander Setup Guide
 
-Complete installation and first-run guide for cammander `v0.1.0`.
+Complete installation and first-run guide for cammander `v2.12.0` (Grilled to Perfection).
+
+For the full list of changes in this release, see [`CHANGELOG.md`](./CHANGELOG.md).
 
 ---
 
@@ -89,7 +91,7 @@ npm install
 cd ../..
 ```
 
-> Note: The primary UI is `prototype.html` - a single-file HTML/CSS/JS harness. The React app under `apps/frontend` is a secondary build target and is not required for normal use.
+> Note: The React + Vite app under `apps/frontend` is the current primary UI as of v2.12.0. `prototype.html` remains a legacy single-file reference. If you only want the backend, skip the frontend build and point a browser at the proxy on port 3001 after building the frontend at least once.
 
 ### 5. Build the backend
 
@@ -152,7 +154,7 @@ Proxy running on port 3001 → backend 3002
 open http://localhost:3001
 ```
 
-Default page serves `prototype.html`.
+Default page serves the built React app from `apps/frontend/dist/`.
 
 ### Test the terminal
 
@@ -163,7 +165,7 @@ Default page serves `prototype.html`.
 ### Test the chat
 
 1. Open the **Chat** panel
-2. Enter your Ollama Cloud API key in Settings (gear icon)
+2. Configure your provider in Settings (gear icon). Default is `ollama-local` (`http://localhost:11434`) as of v2.12.0.
 3. Type "what files are in the current directory?"
 4. The AI should call the `list_files` tool and show results
 
@@ -303,12 +305,13 @@ const STATIC_DIR = '/your/actual/cammander/path';
 
 ### React frontend won't build
 
-**Fix:** You don't need it. Use `http://localhost:3001/prototype.html`. The React app is optional.
+**Fix:** The React frontend is now the primary UI as of v2.12.0. Build it:
 
-If you want it anyway:
 ```bash
 cd apps/frontend && npm run build
 ```
+
+If you prefer the legacy single-file UI, use `http://localhost:3001/prototype.html` directly.
 
 ---
 
@@ -359,9 +362,9 @@ pm2 save
 pm2 startup
 ```
 
-### systemd service (Linux)
+### Systemd
 
-Create `/etc/systemd/system/cammander.service`:
+**Backend service:** `/etc/systemd/system/cammander.service`
 
 ```ini
 [Unit]
@@ -371,8 +374,8 @@ After=network.target
 [Service]
 Type=simple
 User=sc
-WorkingDirectory=/home/sc/cammander/apps/backend
-ExecStart=/usr/bin/node dist/main.js
+WorkingDirectory=/home/sc/cammander
+ExecStart=/usr/bin/node apps/backend/dist/apps/backend/src/main.js
 Environment=PORT=3002
 Restart=always
 
@@ -439,4 +442,4 @@ Restart the backend and proxy services after updating.
 
 ---
 
-*Version: 0.1.0 — cammander by Guideboard Labs*
+*Version: 2.12.0 — Grilled to Perfection — cammander by Guideboard Labs*

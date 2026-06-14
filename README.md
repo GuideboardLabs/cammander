@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.0-teal?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/version-2.12.0--grilled_to_perfection-teal?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License" />
   <img src="https://img.shields.io/badge/node-%3E%3D%2020-green?style=flat-square&logo=node.js" alt="Node.js" />
   <img src="https://img.shields.io/badge/NestJS-11-red?style=flat-square&logo=nestjs&logoColor=red" alt="NestJS" />
@@ -17,9 +17,14 @@
   <img src="https://img.shields.io/badge/Monaco%20Editor-latest-blue?style=flat-square" alt="Monaco" />
 </p>
 
+<p align="center">
+  <em>v2.12.0 — Grilled to Perfection</em><br/>
+  Complete docs and backend audit. Streaming chat, hardened terminal, vault memory, and a system prompt driven by <code>CLAUSE.md</code>.
+</p>
+
 ---
 
-Browser-based AI coding harness with real PTY terminal, streaming LLM chat with native tool-calling, and persistent code editor. NestJS backend. Socket.IO transport. Ollama Cloud support.
+Browser-based AI coding harness with real PTY terminal, streaming LLM chat with native tool-calling, persistent code editor, and project memory vault.
 
 ## Architecture
 
@@ -27,12 +32,12 @@ Browser-based AI coding harness with real PTY terminal, streaming LLM chat with 
 ┌──────────────────────────────────────────────────────────────┐
 │                         Browser                               │
 │  ┌────────────────────────────────────────────────────────┐   │
-│  │  prototype.html (primary)  │  React + Vite (secondary) │   │
-│  │  Single-file HTML/CSS/JS    │  NestJS module federation  │   │
+│  │  React + Vite frontend    │  prototype.html (legacy)   │   │
+│  │  File tree, editor, chat, terminal, vault panels       │   │
 │  └────────────────────┬───────────────────────────────────┘   │
 └───────────────────────┼───────────────────────────────────────┘
                         │ proxy.js (port 3001)
-                        │ HTTP static + WebSocket upgrade + /api proxy
+                        │ HTTP static + /api proxy + /terminal upgrade
                         ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                      Backend (port 3002)                      │
@@ -40,15 +45,20 @@ Browser-based AI coding harness with real PTY terminal, streaming LLM chat with 
 │  │ Chat Controller │ │ TerminalGateway │ │ Files API    │   │
 │  │ └─ SSE stream   │ │ └─ Socket.IO WS │ │ └─ CRUD      │   │
 │  │ └─ Tool loop    │ │ └─ node-pty     │ │              │   │
+│  │ └─ Vault memory │ │ └─ PTY reset/   │ │              │   │
+│  │ └─ Tree context │ │    reconnect    │ │              │   │
 │  └─────────────────┘ └─────────────────┘ └──────────────┘   │
 │  ┌─────────────────┐ ┌─────────────────┐ ┌──────────────┐   │
 │  │ Session Store   │ │ Settings API    │ │ Model Gateway│   │
 │  │ └─ In-memory    │ │ └─ Provider cfg │ │ └─ Routing   │   │
 │  └─────────────────┘ └─────────────────┘ └──────────────┘   │
-│  ┌─────────────────┐ ┌─────────────────┐                    │
-│  │ Git Controller  │ │ Project API     │                    │
-│  │ └─ Status/branch│ │ └─ Discovery    │                    │
-│  └─────────────────┘ └─────────────────┘                    │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌──────────────┐   │
+│  │ Git Controller  │ │ Project API     │ │ Vault API    │   │
+│  │ └─ Status/branch│ │ └─ Discovery    │ │ └─ Notes/CAG │   │
+│  └─────────────────┘ └─────────────────┘ └──────────────┘   │
+│  ┌─────────────────┐                                         │
+│  │ Workspace API   │ ── compact file-tree summaries          │
+│  └─────────────────┘                                         │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -56,18 +66,20 @@ Browser-based AI coding harness with real PTY terminal, streaming LLM chat with 
 
 ### Frontend
 
-- **Primary**: `prototype.html` — self-contained HTML/CSS/JS application
-  - File tree sidebar (`FileTree.tsx` API-compatible)
-  - Slide-in editor with syntax highlighting (TSX, Python, Rust, Go, Shell, YAML, TOML, CSV, Markdown, SQL, JSON, Dockerfile, dotenv)
-  - Collapsible terminal panel (240px expanded, 34px collapsed, 100% maximized)
-  - Streaming chat panel with tool-call cards
-  - Web apps auto-discovery panel
-  - Spreadsheet viewer (CSV/XLSX)
-  - Settings panel (provider/model configuration)
-  - Always-dark editor regardless of theme mode
+React 19 + Vite application in `apps/frontend/`:
 
-- **Secondary**: React 19 + Vite application in `apps/frontend/`
-  - Not actively maintained; `prototype.html` is the reference implementation
+- File tree sidebar
+- Slide-in editor with syntax highlighting (TSX, Python, Rust, Go, Shell, YAML, TOML, CSV, Markdown, SQL, JSON, Dockerfile, dotenv)
+- Collapsible terminal panel with persistent PTY tabs
+- Streaming chat panel with tool-call cards
+- Vault panel for project memory (gbrain-style notes)
+- Workspace selector with recent-workspace persistence
+- Web apps auto-discovery panel
+- Spreadsheet viewer (CSV/XLSX)
+- Settings panel (provider/model configuration)
+- Always-dark editor regardless of theme mode
+
+`prototype.html` remains in the repo as the original single-file reference but is no longer the primary runtime UI.
 
 ### Backend
 
@@ -75,14 +87,16 @@ NestJS monolith at `apps/backend/src/`. Module structure:
 
 | Module | Endpoint | Function |
 |--------|----------|---------|
-| `chat` | `POST /api/chat` | SSE streaming, multi-turn tool loop |
-| `terminal` | `WS /terminal` | node-pty over Socket.IO (namespace `/terminal`) |
+| `chat` | `POST /api/chat`, `POST /api/chat/stream` | SSE streaming, multi-turn tool loop, vault + tree context |
+| `terminal` | `WS /terminal` | node-pty over Socket.IO with reset/reconnect lifecycle |
 | `tools` | Internal | `bash`, `read_file`, `write_file`, `grep`, `list_files` |
 | `sessions` | `GET/POST/DELETE /api/sessions` | Chat session CRUD |
 | `settings` | `GET/PUT /api/settings` | Provider/model configuration |
 | `files` | `GET/POST/PUT/DELETE /api/files` | Workspace file operations |
 | `git` | `GET /api/git/*` | Status, branch, log |
 | `project` | `GET /api/project/apps` | Web app discovery |
+| `vault` | `GET/POST/PUT/DELETE /api/vault/*` | Project memory notes + context ranking |
+| `workspace` | `GET /api/workspaces/tree` | Compact file-tree summary |
 | `model-gateway` | `POST /api/model-gateway/*` | LLM API routing |
 | `model-routing` | Internal | Model selection logic |
 | `searxng-search` | Internal | SearXNG integration |
@@ -94,7 +108,7 @@ NestJS monolith at `apps/backend/src/`. Module structure:
 ### Proxy
 
 `proxy.js` — Node.js HTTP server on port 3001:
-- Static file serving for `prototype.html`, CSS, assets
+- Static file serving for the built React app (dist)
 - WebSocket upgrade to backend port 3002 (`/terminal` namespace)
 - HTTP proxy for `/api/*` routes to port 3002
 - CORS preflight handling
@@ -102,9 +116,10 @@ NestJS monolith at `apps/backend/src/`. Module structure:
 ## Data Flow
 
 1. User types in terminal → xterm.js `onData` → Socket.IO `terminal:input` → node-pty → shell process → PTY output → Socket.IO `terminal:data` → xterm.js write
-2. User sends chat message → `POST /api/chat` (SSE) → LLM API → Server-Sent Events response → tool call parsed → tool executed → result appended → loop until completion
-3. File open → `GET /api/files?path=` → file content → rendered in editor with syntax highlighting
+2. User sends chat message → `POST /api/chat/stream` (SSE) → system prompt (CLAUSE.md + harness + workspace tree + vault context) → LLM API → Server-Sent Events response → tool call parsed → tool executed → result appended → loop until completion
+3. File open → `GET /api/files?path=` → file content → rendered in Monaco editor
 4. Tool execution (from chat) → `tools.service.ts` → `list_files`, `read_file`, `write_file`, `grep`, `bash` → result serialized to SSE stream
+5. Vault note created/updated during chat → persisted to `.cammander/vault/` and indexed for future context retrieval
 
 ## Environment
 
@@ -127,6 +142,7 @@ NestJS monolith at `apps/backend/src/`. Module structure:
 - `uuid` ^11.0.0
 - `axios` ^1.7.0
 - `ws` ^8.18.0
+- `marked`, `highlight.js`, `dompurify` (frontend)
 
 ### Dependencies (Frontend)
 
@@ -135,23 +151,28 @@ NestJS monolith at `apps/backend/src/`. Module structure:
 - `socket.io-client` ^4.8.3
 - `@monaco-editor/react` ^4.7.0
 - `xlsx` ^0.18.5
+- `marked` ^15.x
+- `highlight.js` ^11.x
+- `dompurify` ^3.x
 
 ## Configuration
 
 ### Provider Settings
 
-Stored in `data/settings.json`:
+Stored in `<DATA_DIR>/settings.json`:
 
 ```json
 {
-  "activeProvider": "ollama-cloud",
-  "ollamaCloud": {
-    "baseUrl": "https://ollama.com/v1",
-    "apiKey": "sk-..."
+  "activeProvider": "ollama-local",
+  "ollamaLocal": {
+    "host": "localhost",
+    "port": 11434
   },
-  "defaultModel": "deepseek-v4-flash"
+  "defaultModel": "qwen2.5-coder:14b"
 }
 ```
+
+Supported providers: `ollama-local`, `ollama-cloud`, `openai-compat`, `llama-cpp`, `vllm`, `lm-studio`.
 
 Ollama Cloud endpoint must use `https://ollama.com/v1`. `https://api.ollama.com` returns a 301 redirect that drops the `Authorization` header.
 
@@ -172,11 +193,12 @@ DEFAULT_WORKSPACE=/home/user/projects
 
 cammander auto-discovers and loads system prompts from the workspace root, in priority order:
 
-1. `HQ.md`
-2. `AGENTS.md`
-3. `CLAUSE.md`
+1. `CLAUSE.md`
+2. `HQ.md`
+3. `AGENTS.md`
+4. `soul.md`
 
-Loaded by `chat.controller.ts` and prepended to the LLM conversation context.
+`CLAUSE.md` is the canonical project harness. It carries behavioral guidelines and is intentionally named to signal independence from any single provider's brand. Loaded by `chat.controller.ts` and combined with a Cammander Coding Harness, workspace tree summary, vault context, and project layout before each LLM call.
 
 ## Build
 
@@ -184,20 +206,24 @@ Loaded by `chat.controller.ts` and prepended to the LLM conversation context.
 # Root dependencies
 npm install
 
-# Backend
-cd apps/backend && npm install
-npx nest build
+# Full build (shared + backend + frontend)
+npm run build
 
-# Proxy (root)
-cd ../..
-node proxy.js &
+# Backend only
+npm run build:backend
+
+# Frontend only
+npm run build:frontend
+
+# Tests
+npm run test
 ```
 
 ## Run
 
 ```bash
 # Terminal 1: Backend
-cd apps/backend && PORT=3002 node dist/main.js
+cd apps/backend && PORT=3002 node dist/apps/backend/src/main.js
 
 # Terminal 2: Proxy
 cd /path/to/cammander
@@ -207,18 +233,22 @@ node proxy.js
 open http://localhost:3001
 ```
 
-Alternative: `node proxy.js` in background, then `PORT=3002 node apps/backend/dist/main.js`.
+Alternative: `node proxy.js` in background, then `PORT=3002 node apps/backend/dist/apps/backend/src/main.js`.
 
 ## Project Structure
 
 ```
 cammander/
-├── prototype.html              Primary frontend
+├── prototype.html              Legacy single-file reference
 ├── proxy.js                    HTTP + WS proxy (port 3001 → 3002)
 ├── new-features.css            Incremental UI patches
 ├── HQ.md                       Project system prompt
+├── CLAUSE.md                   Canonical coding-harness guidelines
 ├── manifest.json               PWA manifest
 ├── package.json                Root workspace (npm workspaces)
+├── CHANGELOG.md                Release notes
+├── docs/
+│   └── plans/                  Implementation plans
 ├── apps/
 │   ├── backend/
 │   │   ├── src/
@@ -233,6 +263,8 @@ cammander/
 │   │   │   │   ├── files/
 │   │   │   │   ├── git/
 │   │   │   │   ├── project/
+│   │   │   │   ├── vault/
+│   │   │   │   ├── workspace/
 │   │   │   │   ├── model-gateway/
 │   │   │   │   ├── model-routing/
 │   │   │   │   ├── searxng-search/
@@ -244,12 +276,20 @@ cammander/
 │   │   └── dist/               Compiled output
 │   └── frontend/
 │       ├── src/
-│       │   └── components/
-│       │       ├── FileTree.tsx
-│       │       ├── EditorTabs.tsx
-│       │       ├── EditorPane.tsx
-│       │       ├── WebAppsPanel.tsx
-│       │       └── SpreadsheetViewer.tsx
+│       │   ├── components/
+│       │   │   ├── ChatPanel.tsx
+│       │   │   ├── TerminalPanel.tsx
+│       │   │   ├── VaultPanel.tsx
+│       │   │   ├── WorkspaceSelector.tsx
+│       │   │   ├── FileTree.tsx
+│       │   │   ├── EditorTabs.tsx
+│       │   │   ├── EditorPane.tsx
+│       │   │   ├── WebAppsPanel.tsx
+│       │   │   └── SpreadsheetViewer.tsx
+│       │   ├── stores/
+│       │   ├── hooks/
+│       │   └── utils/
+│       │       └── renderMarkdown.ts
 │       └── vite.config.ts
 ├── shared/
 │   └── tsconfig.json
@@ -268,7 +308,8 @@ cammander/
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/chat` | SSE stream, accepts `{ message, sessionId?, stream? }` |
+| POST | `/api/chat` | Non-streaming chat (kept for compatibility) |
+| POST | `/api/chat/stream` | SSE streaming chat, accepts `{ message, sessionId?, model?, workspaceRoot? }` |
 
 ### Sessions
 
@@ -302,6 +343,25 @@ cammander/
 | GET | `/api/git/branch` | Current branch |
 | GET | `/api/git/log` | Recent commits |
 
+### Vault
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/vault/notes` | List notes |
+| POST | `/api/vault/notes` | Create note |
+| PUT | `/api/vault/notes/:id` | Update note |
+| DELETE | `/api/vault/notes/:id` | Delete note |
+| POST | `/api/vault/context` | Rank relevant notes for a query |
+
+### Workspace
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/workspaces` | List saved workspaces |
+| GET | `/api/workspaces/home-folders?base=` | Scan a directory for project folders |
+| GET | `/api/workspaces/tree?path=` | Compact ASCII file-tree summary |
+| GET | `/api/workspaces/browse?path=` | Browse directory entries |
+
 ### Project
 
 | Method | Path | Description |
@@ -314,35 +374,32 @@ Namespace: `/terminal`
 
 | Event | Direction | Payload | Description |
 |-------|-----------|---------|-------------|
-| `terminal:create` | Client → Server | `{ cwd?, cols?, rows? }` | Spawn PTY session |
+| `terminal:attach` | Client → Server | `{ slot?, cwd?, cols?, rows? }` | Attach to or spawn PTY session |
+| `terminal:create` | Client → Server | `{ cwd?, cols?, rows? }` | Legacy spawn (default slot) |
 | `terminal:input` | Client → Server | `{ data: string }` | STDIN input |
 | `terminal:resize` | Client → Server | `{ cols, rows }` | Resize PTY |
+| `terminal:kill` | Client → Server | `{ slot? }` | Kill PTY |
+| `terminal:reset` | Client → Server | `{ slot? }` | Kill and clear PTY slot |
 | `terminal:data` | Server → Client | `{ data: string }` | STDOUT/STDERR output |
 | `terminal:exit` | Server → Client | `{ exitCode: number }` | Process exit |
+| `terminal:ready` | Server → Client | `{ cwd, pid, slot, reattached }` | PTY ready |
+| `terminal:reset` | Server → Client | `{}` | PTY was reset |
+| `terminal:slots` | Server → Client | `{ slots: string[] }` | Active session IDs |
 
-## Mobile Keyboard Behavior
+## v2.12.0 — Grilled to Perfection
 
-`prototype.html` includes visual viewport detection (`window.visualViewport`) for mobile soft keyboards. When the keyboard opens while terminal is expanded:
+This release is the result of a full `/grill-check` docs-and-code audit. See `CHANGELOG.md` for the complete list of changes.
 
-1. Keyboard height calculated: `window.innerHeight - visualViewport.height`
-2. Terminal panel receives `terminal-panel--keyboard-overlay` class
-3. Panel fixed to `bottom: ${keyboardHeight}px` with `height: 45vh`
-4. `xtermInstance.scrollToBottom()` called on every keystroke
-5. Panel exits overlay mode when keyboard closes
-
-## Web Apps Discovery
-
-Auto-detection: scans workspace for processes on ports 3000, 5173, 8080, etc.
-
-Explicit: `cammander.json` in workspace root:
-
-```json
-{
-  "webApps": [
-    { "name": "Frontend", "url": "http://localhost:5173", "description": "Vite dev" }
-  ]
-}
-```
+Highlights:
+- Streaming chat via `/api/chat/stream` replaces the synchronous endpoint as the primary UX.
+- Workspace file-tree summary is injected into every chat system prompt.
+- `CLAUSE.md` is the canonical project soul file.
+- Vault notes are validated, context-ranked, and covered by tests.
+- Terminal PTY supports reset, reconnect, and explicit cleanup.
+- Default provider is now `ollama-local` for local-first use.
+- Markdown rendering uses `marked` + `highlight.js` + `dompurify`.
+- Backend tests exist for `ToolsService` and `VaultService`.
+- Dead `SessionModule` removed; `SessionsModule` is the single session source of truth.
 
 ## License
 
