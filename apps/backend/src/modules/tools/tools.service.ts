@@ -61,6 +61,10 @@ export class ToolsService {
   }
 
   private bash(command: string): Promise<string> {
+    // Reject obvious shell metacharacter abuse from LLM tool args
+    if (/[;&|`$(){}\[\]\\]/.test(command)) {
+      return Promise.resolve('Refused: command contains disallowed shell metacharacters. Use a single, explicit command.');
+    }
     return new Promise((resolve) => {
       exec(command, { cwd: this.workspaceRoot, timeout: BASH_TIMEOUT_MS, maxBuffer: 1024 * 1024 }, (err, stdout, stderr) => {
         let out = '';
@@ -74,9 +78,11 @@ export class ToolsService {
 
   private async grep(pattern: string, searchPath?: string, glob?: string): Promise<string> {
     const target = searchPath ? this.resolve(searchPath) : this.workspaceRoot;
-    const globFlag = glob ? `--include='${glob}'` : '';
+    const globFlag = glob ? `--include=${JSON.stringify(glob)}` : '';
+    const safePattern = pattern.replace(/'/g, "'\\''");
+    const safeTarget = target.replace(/'/g, "'\\''");
     return new Promise((resolve) => {
-      exec(`grep -rn ${globFlag} '${pattern.replace(/'/g, "'\\''")}' '${target}' 2>/dev/null | head -100`, { timeout: 15000 }, (err, stdout) => {
+      exec(`grep -rn ${globFlag} -- '${safePattern}' '${safeTarget}' 2>/dev/null | head -100`, { timeout: 15000 }, (err, stdout) => {
         resolve(stdout || `(no matches for ${pattern})`);
       });
     });

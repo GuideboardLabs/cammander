@@ -7,6 +7,7 @@ import { TerminalPanel } from '@/components/TerminalPanel';
 import { VaultPanel } from '@/components/VaultPanel';
 import { SettingsModal } from '@/components/SettingsModal';
 import { WorkspacePicker } from '@/components/WorkspacePicker';
+import { WorkspaceSelector } from '@/components/WorkspaceSelector';
 import { getLanguageFromPath } from '@/languages';
 import type { FileNode, OpenTab, CursorPosition, ScrollPosition } from '@/types';
 
@@ -61,10 +62,16 @@ export default function App() {
       const files = await res.json();
       dispatch({ type: 'SET_ROOT', root: { name: absPath.split('/').pop() || absPath, path: absPath, type: 'directory', children: files } });
       dispatch({ type: 'SET_FILES', files });
+      localStorage.setItem('cammander:current-workspace', absPath);
     } catch (e: any) {
       console.error('Failed to open workspace:', e.message);
     }
   }, [dispatch]);
+
+  const handleWorkspaceSwitch = useCallback((absPath: string) => {
+    if (absPath === state.root?.path) return;
+    handleWorkspaceSelect(absPath);
+  }, [handleWorkspaceSelect, state.root?.path]);
 
   const handleFileSelect = useCallback(
     (node: FileNode) => {
@@ -210,6 +217,11 @@ export default function App() {
           </button>
         </div>
         <div className="sidebar-content">
+          {state.root && (
+            <div className="sidebar-workspace-selector">
+              <WorkspaceSelector current={state.root.path} onChange={handleWorkspaceSwitch} />
+            </div>
+          )}
           {sidebarContent}
         </div>
         {/* Bottom toolbar */}

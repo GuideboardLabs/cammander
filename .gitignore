@@ -35,6 +35,12 @@ npm-debug.log*
 *.zip.gz
 *.tar.gz
 
+# OverCR index cache (auto-generated)
+.cammander/vault/.overcr-index/
+
+# Auto-generated session notes
+.cammander/vault/sessions/
+
 # Temporary / scratch files
 *-fixed.css
 *-fixed.*

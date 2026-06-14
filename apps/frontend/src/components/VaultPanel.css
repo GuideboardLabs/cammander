@@ -557,3 +557,270 @@
   background-size: 200% 100%;
   animation: vaultShimmer 1.5s ease-in-out infinite;
 }
+
+/* ── Search Mode Indicator ── */
+.vault-search-mode {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 12px 0;
+  margin-top: -2px;
+  opacity: 0.7;
+}
+
+.vault-search-mode-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Facts Bar (header banner) ── */
+.vault-facts-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background: var(--vault-teal-light);
+  border: 1px solid var(--vault-border);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-smooth);
+  font-size: 11px;
+}
+
+.vault-facts-bar:hover {
+  background: var(--vault-teal-glow);
+  border-color: var(--vault-teal);
+}
+
+.vault-facts-icon {
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.vault-facts-count {
+  flex: 1;
+  color: var(--vault-ink);
+  font-weight: 600;
+}
+
+.vault-facts-toggle {
+  font-size: 10px;
+  color: var(--vault-ink-muted);
+  transition: transform var(--dur-fast) var(--ease-smooth);
+}
+
+.vault-facts-toggle.open {
+  transform: rotate(90deg);
+}
+
+/* ── Facts Table ── */
+.vault-facts-table {
+  margin-bottom: 10px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--vault-bg-elevated);
+  border: 1px solid var(--vault-border);
+  font-size: 10px;
+  animation: vaultItemIn var(--dur-medium) var(--ease-smooth) forwards;
+}
+
+.vault-facts-table-header {
+  display: flex;
+  gap: 4px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--vault-border);
+  margin-bottom: 3px;
+  font-weight: 700;
+  color: var(--vault-ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 9px;
+}
+
+.vault-facts-row {
+  display: flex;
+  gap: 4px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--vault-border);
+}
+
+.vault-facts-row:last-child {
+  border-bottom: none;
+}
+
+.vault-facts-col {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vault-facts-col--narrow {
+  flex: 0 0 48px;
+  text-align: center;
+}
+
+.vault-facts-col--wide {
+  flex: 0 0 60px;
+}
+
+.vault-facts-col--claim {
+  flex: 2;
+}
+
+.vault-facts-kind--fact {
+  color: var(--vault-teal);
+}
+
+.vault-facts-kind--event {
+  color: #818cf8;
+}
+
+.vault-facts-kind--decision {
+  color: var(--vault-orange);
+}
+
+.vault-facts-kind--metric {
+  color: #fbbf24;
+}
+
+.vault-facts-kind--pitfall {
+  color: var(--vault-danger);
+}
+
+.vault-facts-kind--preference {
+  color: #a78bfa;
+}
+
+.vault-facts-source {
+  color: var(--vault-ink-faint);
+  font-style: italic;
+}
+
+/* ── Backlinks ── */
+.vault-facts-list {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.vault-backlink-chip {
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--vault-orange-light);
+  color: var(--vault-orange);
+  cursor: pointer;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  transition: all var(--dur-fast);
+}
+
+.vault-backlink-chip:hover {
+  background: var(--vault-orange-glow);
+  color: #fff;
+}
+
+.vault-backlink-more {
+  font-size: 9px;
+  color: var(--vault-ink-faint);
+  font-style: italic;
+}
+
+/* ── Note meta row (tags + badges) ── */
+.vault-note-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+/* ── Session Badge ── */
+.vault-note-badge {
+  font-size: 9px;
+  padding: 1px 7px;
+  border-radius: 5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.vault-note-badge--session {
+  background: rgba(129, 140, 248, 0.15);
+  color: #818cf8;
+  border: 1px solid rgba(129, 140, 248, 0.25);
+}
+
+/* ── Graph View ───────────────────────────────────────────────────────── */
+
+.vault-graph-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 8px;
+}
+
+.vault-graph-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--vault-ink-faint);
+  padding: 0 4px 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.vault-graph-hovered {
+  color: var(--vault-ink);
+  font-weight: 600;
+  font-style: italic;
+}
+
+.vault-graph-svg {
+  flex: 1;
+  width: 100%;
+  background: transparent;
+  overflow: visible;
+}
+
+.vault-graph-edge {
+  transition: stroke var(--dur-fast), stroke-width var(--dur-fast), stroke-opacity var(--dur-fast);
+}
+
+.vault-graph-node {
+  transition: transform 0.3s ease;
+}
+
+.vault-graph-node:hover {
+  filter: brightness(1.3);
+}
+
+.vault-graph-node text {
+  pointer-events: none;
+  font-family: inherit;
+  transition: fill var(--dur-fast), font-size var(--dur-fast);
+}
+
+/* ── Graph Toggle Button ── */
+
+.vault-header-graph-btn {
+  margin-right: 2px;
+}
+
+.vault-header-graph-btn--active {
+  background: var(--vault-teal-light) !important;
+  border-color: var(--vault-teal) !important;
+  color: var(--vault-teal) !important;
+  box-shadow: 0 0 8px var(--vault-teal-glow) !important;
+}

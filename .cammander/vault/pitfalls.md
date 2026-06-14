@@ -7,8 +7,25 @@ updated: 2026-05-27T00:00:00.000Z
 
 # Critical Pitfalls
 
+## Facts
+
+<!--- cammander:facts:begin -->
+| # | claim | kind | confidence | value | unit | source | context |
+|---|---|---|---|---|---|---|---|
+| 1 | Socket.IO namespace AND path must both be /terminal | pitfall | 1.0 | | | troubleshooting | missing either = dead terminal |
+| 2 | Build from apps/backend/, not project root | pitfall | 1.0 | | | troubleshooting | root includes frontend JSX code |
+| 3 | Backend entry is dist/apps/backend/src/main.js | pitfall | 1.0 | | | troubleshooting | NOT dist/main.js |
+| 4 | Ollama Cloud URL is https://ollama.com/v1 | pitfall | 1.0 | | | troubleshooting | api.ollama.com redirect drops auth header |
+| 5 | API key masking: frontend must not save •••• strings back | pitfall | 1.0 | | | troubleshooting | overwrites real key |
+| 6 | Settings data dir is CWD-relative | pitfall | 1.0 | | | troubleshooting | can end up at wrong path |
+| 7 | Flex children need min-height: 0 | pitfall | 1.0 | | | css | prevents overflow |
+| 8 | Code areas ALWAYS use dark background via !important | pitfall | 1.0 | | | css | never remove !important |
+| 9 | Chat must pass workspaceRoot to tools | pitfall | 1.0 | | | api | without it tools default to env var |
+| 10 | Assistant messages renderMarkdown, user messages escapeHtml | pitfall | 1.0 | | | security | XSS prevention |
+<!--- cammander:facts:end -->
+
 ## Socket.IO (Terminal)
-- **BOTH `namespace` AND `path` must be `/terminal`**: `@WebSocketGateway({ namespace: '/terminal', path: '/terminal' })`. Missing either one = terminal appears connected but accepts no input.
+- **BOTH `namespace` AND `path` must be `/terminal`**: See [[terminal-architecture]] for full gateway details.
 - **Client must connect**: `io(url + '/terminal', { path: '/terminal' })`. The URL MUST include `/terminal`.
 - **Vite proxy needs `ws: true`** on the `/terminal` route, or WebSocket upgrade fails.
 - **proxy.js needs `http-proxy` with `ws: true`**: A raw `http.createServer` does NOT forward WebSocket `upgrade` events.
